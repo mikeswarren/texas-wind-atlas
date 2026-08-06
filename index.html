@@ -146,20 +146,13 @@
       <div id="map-stage">
         <div id="map"></div>
         <div id="map-badge" class="map-badge" hidden></div>
-        <button id="dash-toggle" class="dash-toggle" aria-expanded="false" aria-controls="dash">
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <rect x="1.5" y="8.5" width="3" height="6" rx="1"/>
-            <rect x="6.5" y="4.5" width="3" height="10" rx="1"/>
-            <rect x="11.5" y="1.5" width="3" height="13" rx="1"/>
-          </svg>
-          Analytics
-        </button>
         <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span> Loading 19,380 turbines…</div>
       </div>
 
-      <!-- Analytics drawer. Every number in here is derived from the same index the
-           map is drawing, at the same year, under the same filters. -->
-      <section id="dash" class="dash" hidden aria-label="Analytics dashboard">
+      <!-- Analytics. Always present -- part of the page, not a panel to open.
+           Every number in here is derived from the same index the map is drawing,
+           at the same year, under the same filters. -->
+      <section id="dash" class="dash" aria-label="Analytics">
         <header class="dash-head">
           <div class="dash-title">
             <h2>Analytics</h2>
@@ -167,7 +160,6 @@
           </div>
           <div class="dash-actions">
             <button id="dash-table" class="link-btn" aria-pressed="false">Table view</button>
-            <button id="dash-close" class="icon-btn" aria-label="Close the analytics dashboard">&times;</button>
           </div>
         </header>
         <div class="kpi-row" id="kpi-row"></div>

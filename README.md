@@ -88,8 +88,11 @@ a `case`, which is illegal and would have silently killed the turbine stroke.
 
 ## The analytics dashboard
 
-The **Analytics** button over the map opens a drawer with a KPI strip and five
-charts; `/#analytics` deep-links straight to it, and `Esc` closes it.
+A KPI strip and five charts sit under the map and are **always there** — no
+button, no drawer, no open/closed state. The analysis is what the page is for, so
+it renders on landing alongside the map; anything gated behind a control is a
+feature most visitors never find. The split is a plain two-row CSS grid, so it is
+laid out on first paint with no script, flash, or reflow.
 
 The invariant that makes it worth having: **every number in the drawer is derived
 from the same index the map is drawing, at the same selected year, under the same
@@ -179,7 +182,7 @@ A push to `main` reaches the live site on its own, within about three minutes.
 It is **pull-based** — nothing at GitHub can reach this server, and no deploy key
 or SSH secret exists anywhere off the box:
 
-```
+```text
 map-autodeploy.timer   every 3 min
   └─ map-autodeploy.service  (User=ubuntu, Type=oneshot)
        └─ /usr/local/bin/map-autodeploy      <- installed copy of scripts/autodeploy.sh

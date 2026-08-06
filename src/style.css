@@ -363,14 +363,15 @@ select {
 
 /* ---------- map ---------- */
 
-/* The map column is a grid so the analytics drawer can take a row under the map
-   rather than floating over it -- a panel that covers the thing it describes is
-   useless the moment you want to compare the two. */
+/* The map column is a grid with two permanent rows: the map, and the analytics
+   under it. The split is the resting layout, not a panel that opens -- the map
+   keeps enough height to still read as a map, and the analytics get enough to
+   show the KPI strip plus a full row of cards without scrolling. */
 #map-wrap {
   position: relative;
   background: var(--plane);
   display: grid;
-  grid-template-rows: 1fr;
+  grid-template-rows: minmax(170px, 1fr) minmax(0, 57vh);
   min-height: 0;
 }
 #map-stage { position: relative; min-height: 0; }
@@ -529,29 +530,6 @@ select {
 
 /* ---------- analytics drawer ---------- */
 
-.dash-toggle {
-  position: absolute;
-  top: 14px;
-  right: 54px;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: rgba(13, 13, 13, 0.82);
-  backdrop-filter: blur(8px);
-  color: var(--text-secondary);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-.dash-toggle svg { width: 13px; height: 13px; fill: currentColor; }
-.dash-toggle:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, 0.24); }
-.dash-toggle.on { color: var(--series-1); border-color: rgba(57, 135, 229, 0.55); }
-
 .dash {
   min-height: 0;
   overflow-y: auto;
@@ -560,8 +538,6 @@ select {
   border-top: 1px solid var(--border);
   padding: 0 16px 16px;
 }
-.dash[hidden] { display: none; }
-#app.dash-open #map-wrap { grid-template-rows: minmax(180px, 1fr) minmax(0, 54vh); }
 
 .dash-head {
   position: sticky;
@@ -581,16 +557,6 @@ select {
 .dash-slice b { color: var(--text-primary); font-weight: 620; font-variant-numeric: tabular-nums; }
 .slice-dim { color: var(--text-muted); }
 .dash-actions { display: flex; align-items: center; gap: 12px; flex: none; }
-.icon-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0 2px;
-}
-.icon-btn:hover { color: var(--text-primary); }
 
 /* ---------- KPI strip ---------- */
 
@@ -694,10 +660,9 @@ select {
   #panel { order: 2; border-right: none; border-top: 1px solid var(--border); }
   #map-wrap { order: 1; }
   .panel-head { position: static; }
-  /* On a phone the drawer is the view, not a strip under the map. */
-  #app.dash-open #map-wrap { grid-template-rows: minmax(140px, 0.6fr) minmax(0, 1.6fr); }
+  /* On a phone the analytics are the view, not a strip under the map. */
+  #map-wrap { grid-template-rows: minmax(140px, 0.7fr) minmax(0, 1.5fr); }
   .dash-grid { grid-template-columns: 1fr; }
-  .dash-toggle { right: 14px; top: 58px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

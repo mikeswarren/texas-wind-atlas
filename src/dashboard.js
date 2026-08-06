@@ -1,11 +1,15 @@
 /**
- * The analytics dashboard: a KPI strip plus five charts, in a drawer under the map.
+ * The analytics dashboard: a KPI strip plus five charts, under the map.
  *
- * The one rule that matters here: EVERY number in this drawer is derived from the
- * same `index` the map is drawing, at the same selected year, under the same
- * filters. There is no second source of truth and no precomputed total that could
- * drift. Filter to Vestas and the dashboard is a Vestas dashboard -- headline
- * capacity, rankings, distribution, and technology curves all move together.
+ * It is ALWAYS PRESENT -- there is no button, no drawer, and no open/closed state.
+ * The analysis is what the page is for, so it renders on landing alongside the
+ * map; anything gated behind a control is a feature most visitors never find.
+ *
+ * The one rule that matters here: EVERY number is derived from the same `index`
+ * the map is drawing, at the same selected year, under the same filters. There is
+ * no second source of truth and no precomputed total that could drift. Filter to
+ * Vestas and the dashboard is a Vestas dashboard -- headline capacity, rankings,
+ * distribution, and technology curves all move together.
  *
  * Cross-filtering runs one way on purpose: clicking a manufacturer bar sets the
  * global manufacturer filter, and clicking a county flies the map there. Clicking
@@ -69,15 +73,13 @@ const TILES = [
 ]
 
 export function createDashboard({ onPickManufacturer, onPickCounty }) {
-  const root = document.getElementById('dash')
   const slice = document.getElementById('dash-slice')
   const kpiRow = document.getElementById('kpi-row')
   const grid = document.getElementById('dash-grid')
-  const toggleBtn = document.getElementById('dash-toggle')
   const tableBtn = document.getElementById('dash-table')
 
   let tableMode = false
-  let last = null // { index, year, state } -- replayed when the drawer opens
+  let last = null // { index, year, state } -- replayed when the table view toggles
 
   /* --------------------------------------------------------------- scaffold */
 
@@ -189,8 +191,6 @@ export function createDashboard({ onPickManufacturer, onPickCounty }) {
 
   function update(index, year, state) {
     last = { index, year, state }
-    if (root.hidden) return
-
     const i = year - index.yearMin
     const row = index.perYear[i]
     const prev = i > 0 ? index.perYear[i - 1] : null
@@ -323,32 +323,7 @@ export function createDashboard({ onPickManufacturer, onPickCounty }) {
     if (last) update(last.index, last.year, last.state)
   }
 
-  /* ---------------------------------------------------------------- opening */
-
-  function setOpen(on) {
-    root.hidden = !on
-    toggleBtn.setAttribute('aria-expanded', String(on))
-    toggleBtn.classList.toggle('on', on)
-    document.getElementById('app').classList.toggle('dash-open', on)
-    // Deep-linkable, but with replaceState rather than a hash assignment: a
-    // toggle is not a navigation and should not stack up history entries.
-    try {
-      const url = on ? '#analytics' : window.location.pathname + window.location.search
-      window.history.replaceState(null, '', url)
-    } catch { /* file:// and sandboxed frames disallow this; harmless */ }
-    // Charts drawn while the drawer was hidden measured 0px; replaying the last
-    // state redraws them at their real size.
-    if (on && last) update(last.index, last.year, last.state)
-  }
-
-  toggleBtn.addEventListener('click', () => setOpen(root.hidden))
-  document.getElementById('dash-close').addEventListener('click', () => setOpen(false))
   tableBtn.addEventListener('click', () => setTableMode(!tableMode))
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !root.hidden) setOpen(false)
-  })
 
-  if (window.location.hash === '#analytics') setOpen(true)
-
-  return { update, setOpen, isOpen: () => !root.hidden }
+  return { update }
 }
