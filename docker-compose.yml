@@ -1,0 +1,47 @@
+name: texas-wind-atlas
+
+# The atlas is a static build plus one reverse-proxy route, and that route is the
+# reason this stack exists. /wx fronts NOAA's weather API to get around its
+# missing CORS header, and while that rule lived in the server's shared edge
+# config it was the one piece of the app that no deploy could ship -- rebuild the
+# edge from scratch and the live wind layer breaks with nothing in the repo to
+# explain why. Here it is versioned with the code that depends on it.
+#
+# Standalone:
+#   npm run build && docker compose up -d   ->  http://127.0.0.1:8089
+#
+# On this server the site root is the published directory instead, and the
+# container joins the shared `edge` network via a git-ignored
+# docker-compose.override.yml. See README -> Deployment.
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Defaults to the local build so a fresh clone works with no arguments.
+      # Production points this at the published directory rather than serving
+      # out of a build tree: vite empties dist/ at the start of every build, and
+      # a bind mount straight to it would serve 404s for the few seconds a
+      # deploy is in flight. deploy.sh rsyncs into the published directory
+      # instead, which swaps files in place.
+      - ${SITE_ROOT:-./dist}:/srv/site:ro
+    ports:
+      # Loopback only. Nothing here should be reachable except through a proxy
+      # that terminates TLS.
+      - "127.0.0.1:${SITE_PORT:-8089}:8080"
+    networks:
+      web:
+        # Unique alias: this container also sits on a shared network in
+        # production, where a bare `caddy` would collide with other stacks.
+        aliases:
+          - texas-wind-atlas-caddy
+
+networks:
+  web:
+# Run compose from a full checkout only. The project name is fixed, so
+# `docker compose up -d` from the autodeploy build clone at /srv/build -- which
+# has no docker-compose.override.yml, that file being git-ignored -- would
+# reconcile the running container against this base file alone and re-point the
+# live site at that clone's dist/.

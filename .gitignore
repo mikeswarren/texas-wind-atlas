@@ -8,3 +8,6 @@ scripts/.cache/
 
 # Byte-compiled build_data.py, if it is ever imported rather than run
 __pycache__/
+
+# Server-local compose override (site root + edge network)
+docker-compose.override.yml

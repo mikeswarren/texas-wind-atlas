@@ -1,0 +1,62 @@
+{
+	# Plain HTTP on :8080. TLS is terminated upstream -- by this server's shared
+	# edge Caddy in production, or by nothing at all when you run the stack
+	# standalone on localhost.
+	auto_https off
+}
+
+:8080 {
+	encode zstd gzip
+
+	root * /srv/site
+
+	# NOAA's aviation weather API serves no Access-Control-Allow-Origin, so a
+	# browser fetch straight to it is refused. Proxying it under our own origin
+	# sidesteps CORS entirely -- no API key is involved, and only /api/data/* on
+	# that one host is reachable.
+	#
+	# METARs are issued hourly, so a 2-minute cache costs no freshness and
+	# collapses every visitor's polling into one upstream request.
+	handle /wx/api/data/* {
+		uri strip_prefix /wx
+		reverse_proxy https://aviationweather.gov {
+			header_up Host aviationweather.gov
+			# header_down, not a sibling `header` directive: upstream sends its
+			# own Cache-Control: max-age=60, and adding ours beside it leaves
+			# two conflicting values on one response for the browser to choose
+			# between. This replaces it.
+			header_down Cache-Control "public, max-age=120"
+		}
+	}
+
+	@geojson path *.geojson
+	header @geojson Content-Type application/geo+json
+
+	@data path /data/*
+	header @data Cache-Control "public, max-age=3600"
+
+	# Vite hashes asset filenames, so they can be cached hard.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# Holds the Mapbox token and is edited in place on the server --
+	# it must never be served from cache.
+	@config path /config.js
+	header @config Cache-Control "no-store"
+
+	# Names the commit the live build came from. Its whole job is to answer
+	# "what is deployed right now", so a cached copy is a wrong answer.
+	@build path /build.json
+	header @build Cache-Control "no-store"
+
+	header /index.html Cache-Control no-cache
+
+	handle {
+		try_files {path} /index.html
+		file_server {
+			# deploy.sh writes a .gz beside each data file, so the 4.2 MB turbine
+			# feed goes over the wire as 182 KB without re-compressing per request.
+			precompressed gzip
+		}
+	}
+}

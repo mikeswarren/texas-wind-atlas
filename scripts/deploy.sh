@@ -68,6 +68,24 @@ fi
 
 echo
 echo "Deployed. $(find "$SITE" -type f | wc -l) files, $(du -sh "$SITE" | cut -f1) on disk."
+
+# The site is served by this project's own caddy container, which bind-mounts
+# $SITE read-only -- so publishing is a file swap underneath a running process
+# and needs no restart, no rebuild, and no window where the root is half-written.
+#
+# Deliberately a CHECK and not `docker compose up -d`: autodeploy runs this
+# script from the build clone at /srv/build, where the git-ignored
+# docker-compose.override.yml does not exist. Compose would happily reconcile
+# the same project name against the base file alone and re-point the live
+# container at that clone's empty dist/.
+if command -v docker >/dev/null 2>&1; then
+  if ! docker ps --format '{{.Names}}' | grep -qx texas-wind-atlas-caddy-1; then
+    echo
+    echo "WARNING: texas-wind-atlas-caddy-1 is not running, so nothing is serving"
+    echo "         these files. Start it from a full checkout (NOT the build clone):"
+    echo "           cd ~/claude/texas-wind-atlas && docker compose up -d"
+  fi
+fi
 if ! has_token "$SITE/config.js"; then
   echo
   echo "NOTE: no Mapbox token is set. The site will show its setup screen until"

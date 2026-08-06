@@ -249,22 +249,48 @@ screen with an explanation, rather than showing an empty grey canvas.
 
 ## Deployment
 
-The site is a static build behind the shared edge Caddy on this server
-(see `~/claude/caddy-sites/README.md`):
+The stack is one container: a Caddy that serves the build and proxies `/wx`.
 
-- Routing: `~/claude/caddy-sites/map.caddy`
-- Web root: `/srv/sites/map.hitky.com/`
-- Publish: `./scripts/deploy.sh`, then `~/claude/edge/reload.sh` if routing changed
+```bash
+npm run build
+docker compose up -d          # http://127.0.0.1:8089
+```
 
-`map.caddy` also carries the `/wx` reverse proxy the live wind layer depends on.
-That part is **not** shipped by `deploy.sh` — it is edge config, so a change
-there needs `~/claude/edge/reload.sh` (validate-then-hot-reload, zero downtime).
-A deploy without the reload leaves the toggle failing on CORS.
+That is the whole thing, and it runs anywhere Docker does. `caddy/Caddyfile`
+holds every routing rule the site has — cache policy, the precompressed GeoJSON,
+and the `/wx` proxy the live wind layer depends on.
 
-`deploy.sh` pre-compresses the data files and Caddy serves them with
-`precompressed gzip`, so the 4.2 MB turbine feed goes over the wire as 182 KB
-without re-gzipping on every cold request. The deploy also preserves whatever
-token is already live in `config.js`, so publishing never takes the map down.
+**Routing is versioned with the code on purpose.** `/wx` exists only because
+aviationweather.gov sends no CORS header, and it used to live in this server's
+shared edge config — which meant it was the one part of the app no deploy could
+ship. Rebuild the edge from scratch and the wind layer breaks, with nothing in
+the repo to say why. Now `docker compose up` brings up a working site, proxy
+included.
+
+### On this server
+
+The shared edge Caddy terminates TLS for `map.hitky.com` and reverse-proxies to
+this container over the external `edge` network (see
+`~/claude/caddy-sites/README.md`). Two server-local pieces, both git-ignored or
+outside the repo:
+
+- `docker-compose.override.yml` — joins the `edge` network and points the site
+  root at `/srv/sites/map.hitky.com` instead of `./dist`
+- `~/claude/caddy-sites/map.caddy` — three lines, `reverse_proxy
+  texas-wind-atlas-caddy-1:8080`, and it should never need to change again
+
+Publishing is `./scripts/deploy.sh`. It rsyncs into the published directory that
+the container bind-mounts read-only, so a deploy is a **file swap under a running
+process** — no restart, no rebuild, and no window where the root is half-written.
+It also pre-compresses the data files, which the app Caddy serves with
+`precompressed gzip` so the 4.2 MB turbine feed goes over the wire as 182 KB
+without re-gzipping per cold request, and it preserves whatever token is already
+live in `config.js` so publishing never takes the map down.
+
+Only the edge hop compresses nothing of its own: double-compressing would undo
+the precompressed files. Run compose from a full checkout, never from the
+autodeploy build clone — the reason is in the comment at the foot of
+`docker-compose.yml`.
 
 ### Autodeploy
 
