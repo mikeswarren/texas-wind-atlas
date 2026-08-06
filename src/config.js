@@ -113,11 +113,13 @@ export const PLACES = [
 ]
 
 /**
- * Token resolution, in priority order:
- *  1. VITE_MAPBOX_TOKEN  -- baked in at build time from .env
- *  2. window.MAPBOX_TOKEN -- set by /config.js, editable on the server with
+ * Token resolution, in the priority order the expression below actually applies:
+ *  1. ?token= in the URL  -- for a quick local try without touching files
+ *  2. VITE_MAPBOX_TOKEN   -- baked in at build time from .env. Dev only: it
+ *     outranks config.js and lands in an immutable, year-cached asset, so
+ *     deploy.sh refuses to publish a bundle that contains one.
+ *  3. window.MAPBOX_TOKEN -- set by /config.js, editable on the server with
  *     no rebuild, which is how the deployed site gets its token
- *  3. ?token= in the URL  -- for a quick local try without touching files
  *  4. localStorage      -- a token pasted into the setup screen, this browser only
  */
 export const TOKEN_STORAGE_KEY = 'twa:mapbox-token'

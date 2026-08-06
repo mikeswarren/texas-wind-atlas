@@ -5,3 +5,6 @@ dist/
 
 # Cached USWTDB API pages -- rebuild with `npm run data`
 scripts/.cache/
+
+# Byte-compiled build_data.py, if it is ever imported rather than run
+__pycache__/

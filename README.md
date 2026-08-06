@@ -36,8 +36,14 @@ Texas wind arriving county by county.
 Rebuild the datasets with:
 
 ```bash
-npm run data          # cached; add -- --refresh to re-pull from USGS
+npm run data                  # cached; add -- --refresh to re-pull from USGS
+npm run data -- --clean       # drop the cache (~8 MB) and exit
 ```
+
+Raw API pages are cached in `scripts/.cache/`, which is gitignored and does not
+grow: page files are keyed by offset, so `--refresh` overwrites them in place
+rather than stacking generations. Each run prints the cache's size and age so
+the footprint is never a surprise.
 
 `scripts/build_data.py` (standard library only) writes three files into
 `public/data/`:
@@ -217,11 +223,12 @@ or SSH secret exists anywhere off the box:
 ```text
 map-autodeploy.timer   every 3 min
   └─ map-autodeploy.service  (User=ubuntu, Type=oneshot)
-       └─ /usr/local/bin/map-autodeploy      <- installed copy of scripts/autodeploy.sh
-            ├─ git fetch; HEAD == origin/main ? exit
-            ├─ git reset --hard origin/main
-            ├─ npm ci                        <- only if package{,-lock}.json moved
-            └─ ./scripts/deploy.sh           <- validate, build, publish
+       └─ /usr/local/bin/map-autodeploy      <- scripts/autodeploy-launcher.sh
+            └─ snapshots scripts/autodeploy.sh to a temp file, runs the snapshot
+                 ├─ git fetch; HEAD == origin/main ? exit
+                 ├─ git reset --hard origin/main
+                 ├─ npm ci                   <- only if package{,-lock}.json moved
+                 └─ ./scripts/deploy.sh      <- validate, build, publish
 ```
 
 It deploys from its own clone at `/srv/build/texas-wind-atlas`, never from a
@@ -234,17 +241,41 @@ systemctl list-timers map-autodeploy.timer     # when it next runs
 sudo systemctl start map-autodeploy.service    # deploy now, don't wait
 ```
 
-`scripts/autodeploy.sh` is the canonical source but systemd runs the **installed
-copy**, because the script's own `git reset --hard` would otherwise be able to
-rewrite the bytes bash had not yet read. After editing it:
+`scripts/autodeploy.sh` runs from a **temp-file snapshot**, because the script's
+own `git reset --hard` would otherwise be able to rewrite the bytes bash had not
+yet read. Taking the snapshot is the only job of
+`scripts/autodeploy-launcher.sh`, the one installed file:
 
 ```bash
-sudo install -m 755 scripts/autodeploy.sh /usr/local/bin/map-autodeploy
+sudo install -m 755 scripts/autodeploy-launcher.sh /usr/local/bin/map-autodeploy
 ```
+
+That launcher holds no project logic and should never need reinstalling again —
+which is the point. An earlier version installed a copy of `autodeploy.sh`
+itself, so every edit to the deploy logic silently did nothing until someone
+remembered this command. Now `autodeploy.sh` is edited in the repo like anything
+else and takes effect on the next run.
 
 Because `deploy.sh` validates the style specs and builds before it publishes, a
 push that breaks either one fails inside the timer and leaves the previous build
 serving — the failure shows up in `journalctl`, not on the site.
+
+### What is actually deployed
+
+Every build writes `build.json` next to the bundle, and Caddy serves it
+`no-store`:
+
+```bash
+curl -s https://map.hitky.com/build.json     # commit, subject, dirty flag, build time
+```
+
+Asset filenames are content hashes, so they cannot be compared against a commit
+by eye — and a `dist/` built from a working copy differs from the deployed one
+even at the same commit, because Vite compiles `VITE_MAPBOX_TOKEN` from your
+`.env` into the bundle. `deploy.sh` refuses to publish a bundle with a token
+compiled in: it would outrank `config.js` and sit in an asset cached `immutable`
+for a year, so it could not be rotated without a rebuild. Build from a clean
+clone (as autodeploy does) or pass `VITE_MAPBOX_TOKEN= ./scripts/deploy.sh`.
 
 **DNS:** `map.hitky.com` must point at this server. hitky.com is
 Cloudflare-proxied, and a brand-new orange-clouded hostname dead-locks its

@@ -14,7 +14,9 @@ counties.geojson   254 Texas counties with joined wind statistics
 summary.json       statewide rollups: per-year build-out, manufacturers, records
 
 Raw API pages are cached under scripts/.cache/ so re-runs don't hammer USGS.
-Run:  python3 scripts/build_data.py [--refresh]
+The cache is gitignored and bounded -- page files are keyed by offset, so a
+--refresh overwrites them in place rather than accumulating generations.
+Run:  python3 scripts/build_data.py [--refresh] [--clean]
 """
 
 from __future__ import annotations
@@ -24,6 +26,7 @@ import gzip
 import json
 import statistics
 import sys
+import time
 import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -58,6 +61,31 @@ def fetch(url: str, cache_name: str, refresh: bool) -> bytes:
         body = resp.read()
     cached.write_bytes(body)
     return body
+
+
+def cache_report() -> str:
+    """One line describing the cache, so its footprint is never a surprise."""
+    files = sorted(p for p in CACHE.glob("*.json") if p.is_file())
+    if not files:
+        return "cache empty -- every page came from the API"
+    kb = sum(p.stat().st_size for p in files) / 1024
+    age_days = (time.time() - max(p.stat().st_mtime for p in files)) / 86400
+    return (
+        f"cache {len(files)} files, {kb:,.0f} KB in scripts/.cache/, "
+        f"newest {age_days:.0f}d old -- gitignored; --refresh to re-pull, --clean to drop"
+    )
+
+
+def clean_cache() -> int:
+    removed = kb = 0
+    for path in CACHE.glob("*.json"):
+        kb += path.stat().st_size / 1024
+        path.unlink()
+        removed += 1
+    if CACHE.is_dir() and not any(CACHE.iterdir()):
+        CACHE.rmdir()
+    print(f"Removed {removed} cached page(s), {kb:,.0f} KB.")
+    return 0
 
 
 def fetch_turbines(refresh: bool) -> list[dict]:
@@ -309,7 +337,11 @@ def write(path: Path, payload: dict, minify: bool = True) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--refresh", action="store_true", help="bypass the local API cache")
+    ap.add_argument("--clean", action="store_true", help="delete the local API cache and exit")
     args = ap.parse_args()
+
+    if args.clean:
+        return clean_cache()
 
     print("Fetching USWTDB Texas turbines...", file=sys.stderr)
     rows = fetch_turbines(args.refresh)
@@ -329,6 +361,7 @@ def main() -> int:
         f"\n{summary['turbines']:,} turbines mapped  |  {summary['totalMw']:,.0f} MW  |  "
         f"{summary['counties']} counties  |  {summary['yearMin']}-{summary['yearMax']}"
     )
+    print(cache_report())
     return 0
 
 

@@ -26,6 +26,22 @@ npm run --silent validate
 echo "==> Building"
 npm run --silent build
 
+# Vite bakes VITE_MAPBOX_TOKEN into the bundle at build time, and src/config.js
+# ranks that above the server-editable window.MAPBOX_TOKEN. A build made from a
+# developer .env would therefore ship that token inside an asset served
+# `immutable, max-age=31536000` -- silently outranking config.js, and unrotatable
+# without a rebuild. The autodeploy clone has no .env, so this only ever fires on
+# a hand-run deploy from a working copy.
+if grep -rlq 'pk\.eyJ' dist/assets 2>/dev/null; then
+  echo >&2
+  echo "ERROR: a Mapbox token is compiled into dist/assets/." >&2
+  echo "       It came from VITE_MAPBOX_TOKEN in .env, and it would outrank the" >&2
+  echo "       token in $SITE/config.js on the live site." >&2
+  echo "       Publish without it:  VITE_MAPBOX_TOKEN= ./scripts/deploy.sh" >&2
+  echo "       The live token belongs in config.js, which needs no rebuild." >&2
+  exit 1
+fi
+
 echo "==> Pre-compressing data files"
 # Caddy is configured with `precompressed gzip`; a .gz next to each file means
 # the edge serves 182 KB from disk instead of gzipping 4.2 MB per cold request.

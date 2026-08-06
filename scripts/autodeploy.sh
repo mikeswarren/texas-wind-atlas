@@ -2,18 +2,14 @@
 # Deploy the atlas when origin/main moves. Driven by the map-autodeploy systemd
 # timer (every 3 minutes); see README -> Deployment.
 #
-#   Canonical source : this file, in the repo
-#   Installed copy   : /usr/local/bin/map-autodeploy   <- what systemd runs
+# This file is canonical and needs no install step. systemd runs
+# scripts/autodeploy-launcher.sh (installed once at /usr/local/bin/map-autodeploy),
+# which snapshots this script to a temp file and runs the snapshot -- so the bytes
+# bash is reading cannot be rewritten by the `git reset --hard` below, and editing
+# this file takes effect on the next run. See that launcher for the full reasoning.
 #
-# It runs from an INSTALLED COPY on purpose. This script's own job includes
-# `git reset --hard`, and bash reads a script incrementally as it executes -- so a
-# push that changed this file while it was running could rewrite the bytes bash
-# had not read yet. The installed copy is outside the repo and therefore stable
-# for the whole run. deploy.sh is fine to take from the repo because it is exec'd
-# fresh AFTER the reset, which is exactly when the new version should be used.
-#
-# Editing this file has no effect until it is reinstalled:
-#   sudo install -m 755 scripts/autodeploy.sh /usr/local/bin/map-autodeploy
+# deploy.sh is invoked straight from the repo because it runs AFTER the reset,
+# which is exactly when the new version should be used.
 #
 # The clone it deploys from (/srv/build/texas-wind-atlas) is a build artefact,
 # never edited by hand -- which is why `git reset --hard` is safe here and why the
