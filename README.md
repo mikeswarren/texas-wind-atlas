@@ -124,7 +124,39 @@ Two decisions in there are load-bearing:
   so the ellipsis lands where the text stops fitting; the full name stays in the
   tooltip, the `<title>`, and the table.
 
-Every card has a **table view** (one toggle in the drawer header), so no value is
+### Resizable layout
+
+Both dividers are draggable — the sidebar/map edge and the map/analytics edge — so
+how much of the window is map is the reader's call. The cursor changes to
+`col-resize` / `row-resize` on hover, and each divider is a focusable
+`role="separator"`: **arrow keys** nudge by 16px, **Shift+arrow** by 48px, **Home**
+and **End** jump to the limits, and **double-click** restores the default. Sizes
+persist per browser.
+
+Each divider is a **grid track**, not an overlay — `#app` is
+`var(--panel-w) var(--split) 1fr` and `#map-wrap` is `1fr var(--split) var(--dash-h)`
+— so a drag is only ever "write one custom property" and the browser reflows the
+grid. The track also draws the divider hairline, which is why `#panel` and `.dash`
+carry no border of their own.
+
+Three details in `src/splitters.js` are load-bearing, and `npm run validate`
+regression-tests all of them (`scripts/test_splitters.mjs`, 20 checks against a DOM
+stub — no browser needed):
+
+- **The current size is measured from the pane, never read back from the custom
+  property.** The defaults are viewport-relative (`--dash-h: 57vh`), and reading
+  the property gives the *string* `"57vh"` — which `parseFloat` turns into `57`. A
+  keyboard nudge computed from that collapses the panel to ~57px.
+- **No px override is written until you actually resize something.** Publishing a
+  measured value at boot would freeze the layout for visitors who never touch a
+  divider, and an inline style would also beat the mobile `62vh` media query.
+- **The analytics floor is 56px, not 0.** There is no button to bring the panel
+  back, so the divider is the only handle and a 0px pane would be unhittable.
+
+Mapbox does not notice a container resize on its own, so the drag calls
+`map.resize()`; the charts already re-draw through their own `ResizeObserver`.
+
+Every card has a **table view** (one toggle in the header), so no value is
 reachable by hover alone. Colours are unchanged from the map's palette — two
 validated categorical slots and one blue sequential ramp — because the only
 two-series chart here happens to be two measures in the same unit.

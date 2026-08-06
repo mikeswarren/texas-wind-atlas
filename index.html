@@ -142,12 +142,20 @@
       </footer>
     </aside>
 
+    <!-- Drag to resize the sidebar; arrow keys work too, double-click resets. -->
+    <div class="split split-v" data-split="panel" role="separator"
+         aria-orientation="vertical" aria-label="Resize the sidebar" tabindex="0"></div>
+
     <main id="map-wrap">
       <div id="map-stage">
         <div id="map"></div>
         <div id="map-badge" class="map-badge" hidden></div>
         <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span> Loading 19,380 turbines…</div>
       </div>
+
+      <!-- Drag up/down to trade space between the map and the analytics. -->
+      <div class="split split-h" data-split="dash" role="separator"
+           aria-orientation="horizontal" aria-label="Resize the analytics panel" tabindex="0"></div>
 
       <!-- Analytics. Always present -- part of the page, not a panel to open.
            Every number in here is derived from the same index the map is drawing,

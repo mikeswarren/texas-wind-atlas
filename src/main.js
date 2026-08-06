@@ -20,6 +20,7 @@ import { P, installLayers, installTerrain, setHighlightYear, turbineFilter } fro
 import { buildIndex, fmt } from './stats.js'
 import { createTimeline, updateStats, renderLegend } from './panel.js'
 import { createDashboard } from './dashboard.js'
+import { createSplitters } from './splitters.js'
 
 const state = {
   year: 2025,
@@ -541,6 +542,9 @@ async function boot() {
     onPickManufacturer: pickManufacturer,
     onPickCounty: pickCounty,
   })
+  // The charts re-draw themselves through their own ResizeObserver; the map does
+  // not, so its canvas has to be told its container changed.
+  createSplitters({ onResize: () => { if (map) map.resize() } })
 
   fillManufacturers()
   fillNotes()

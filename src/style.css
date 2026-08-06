@@ -13,6 +13,10 @@
   --series-1: #3987e5;
   --series-2: #d95926;
   --panel-w: 372px;
+  /* Both panes are resizable; splitters.js overrides these two in px. The
+     defaults live here so a first paint needs no script. */
+  --dash-h: 57vh;
+  --split: 8px;
   --radius: 10px;
   color-scheme: dark;
 }
@@ -33,15 +37,45 @@ a { color: var(--series-1); }
 
 #app {
   display: grid;
-  grid-template-columns: var(--panel-w) 1fr;
+  grid-template-columns: var(--panel-w) var(--split) 1fr;
   height: 100%;
 }
+
+/* ---------- splitters ---------- */
+
+/* The splitter is a grid track, so dragging it is just writing one custom
+   property -- no absolute positioning and nothing to keep in sync. It also owns
+   the divider hairline, which is why #panel and .dash have no border here. */
+.split {
+  position: relative;
+  background: var(--surface-1);
+  z-index: 6;
+  touch-action: none;
+}
+.split::after {
+  content: '';
+  position: absolute;
+  background: var(--border);
+  transition: background 0.15s;
+}
+.split-v { cursor: col-resize; }
+.split-h { cursor: row-resize; }
+.split-v::after { top: 0; bottom: 0; left: 50%; width: 1px; transform: translateX(-50%); }
+.split-h::after { left: 0; right: 0; top: 50%; height: 1px; transform: translateY(-50%); }
+.split:hover::after,
+.split.dragging::after { background: var(--series-1); }
+.split:focus-visible { outline: 2px solid var(--series-1); outline-offset: -2px; }
+
+/* Hold the resize cursor for the whole drag, even when the pointer has left the
+   8px strip, and stop the gesture selecting panel text on the way past. */
+body.resizing-col, body.resizing-col * { cursor: col-resize !important; }
+body.resizing-row, body.resizing-row * { cursor: row-resize !important; }
+body.resizing-col, body.resizing-row { user-select: none; }
 
 /* ---------- panel ---------- */
 
 #panel {
   background: var(--surface-1);
-  border-right: 1px solid var(--border);
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
@@ -363,15 +397,16 @@ select {
 
 /* ---------- map ---------- */
 
-/* The map column is a grid with two permanent rows: the map, and the analytics
-   under it. The split is the resting layout, not a panel that opens -- the map
-   keeps enough height to still read as a map, and the analytics get enough to
-   show the KPI strip plus a full row of cards without scrolling. */
+/* The map column is a grid with three permanent tracks: the map, the splitter,
+   and the analytics. The split is the resting layout, not a panel that opens, and
+   the divider is draggable -- so how much of it is map is the reader's call. The
+   map track has no min-height of its own; splitters.js caps --dash-h instead, in
+   one place, which keeps the clamp and the drag from disagreeing. */
 #map-wrap {
   position: relative;
   background: var(--plane);
   display: grid;
-  grid-template-rows: minmax(170px, 1fr) minmax(0, 57vh);
+  grid-template-rows: minmax(0, 1fr) var(--split) var(--dash-h);
   min-height: 0;
 }
 #map-stage { position: relative; min-height: 0; }
@@ -535,7 +570,7 @@ select {
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--surface-1);
-  border-top: 1px solid var(--border);
+  /* No border-top -- the .split-h track above carries the divider hairline. */
   padding: 0 16px 16px;
 }
 
@@ -656,12 +691,16 @@ select {
 /* ---------- responsive ---------- */
 
 @media (max-width: 900px) {
+  /* Stacked, so there is no sidebar edge to drag -- the vertical splitter has
+     nothing to do and would just be a stray 8px band. */
   #app { grid-template-columns: 1fr; grid-template-rows: 45vh 1fr; }
-  #panel { order: 2; border-right: none; border-top: 1px solid var(--border); }
+  .split-v { display: none; }
+  #panel { order: 2; border-top: 1px solid var(--border); }
   #map-wrap { order: 1; }
   .panel-head { position: static; }
-  /* On a phone the analytics are the view, not a strip under the map. */
-  #map-wrap { grid-template-rows: minmax(140px, 0.7fr) minmax(0, 1.5fr); }
+  /* On a phone the analytics are the view, not a strip under the map -- but the
+     horizontal splitter still works, so this is only the starting point. */
+  :root { --dash-h: 62vh; }
   .dash-grid { grid-template-columns: 1fr; }
 }
 

@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "data": "python3 scripts/build_data.py",
-    "validate": "node scripts/validate_style.mjs"
+    "validate": "node scripts/validate_style.mjs && node scripts/test_splitters.mjs"
   },
   "dependencies": {
     "mapbox-gl": "^3.28.0"
