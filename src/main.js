@@ -19,6 +19,7 @@ import { resolveToken, TOKEN_STORAGE_KEY, STYLES, PLACES } from './config.js'
 import { P, installLayers, installTerrain, setHighlightYear, turbineFilter } from './layers.js'
 import { buildIndex, fmt } from './stats.js'
 import { createTimeline, updateStats, renderLegend } from './panel.js'
+import { createDashboard } from './dashboard.js'
 
 const state = {
   year: 2025,
@@ -38,6 +39,7 @@ let map = null
 let data = { turbines: null, counties: null, summary: null }
 let index = null
 let timeline = null
+let dashboard = null
 let clusterDirty = true
 let playTimer = null
 
@@ -195,6 +197,9 @@ function applyYear({ repaintCounties = true } = {}) {
   updateStats(index, state.year)
   timeline.update(index, state.year)
   renderLegend(state.mode, state.year)
+  // The dashboard reads the same index at the same year, so it can never
+  // disagree with the map or the tiles.
+  if (dashboard) dashboard.update(index, state.year, state)
 }
 
 /** Filters changed -- the whole index is stale, so rebuild and replay. */
@@ -435,14 +440,58 @@ function wirePlaces() {
   box.querySelector('button').classList.add('on')
 }
 
+/**
+ * Every manufacturer present in the data, not just the summary's top eight.
+ *
+ * summary.manufacturers is a top-N list for the ETL's own reporting; using it
+ * here left 15 manufacturers (~480 turbines) with no way to be selected, and it
+ * would desync the select the moment the dashboard cross-filtered to one of
+ * them. The distinct list is derived from the features once at boot.
+ */
 function fillManufacturers() {
+  const counts = new Map()
+  for (const f of data.turbines.features) {
+    const name = f.properties[P.manu] || 'Unknown'
+    counts.set(name, (counts.get(name) || 0) + 1)
+  }
   const select = document.getElementById('manufacturer')
-  for (const m of data.summary.manufacturers) {
+  for (const [name, n] of [...counts].sort((a, b) => b[1] - a[1])) {
     const option = document.createElement('option')
-    option.value = m.name
-    option.textContent = `${m.name} (${fmt.int(m.n)})`
+    option.value = name
+    option.textContent = `${name} (${fmt.int(n)})`
     select.appendChild(option)
   }
+}
+
+/* --------------------------------------------------------- cross-filtering */
+
+/** Bounds of a county polygon, for zooming out of the ranked-county chart. */
+function featureBounds(feature) {
+  const bounds = new mapboxgl.LngLatBounds()
+  const walk = (coords) => {
+    if (typeof coords[0] === 'number') bounds.extend(coords)
+    else for (const c of coords) walk(c)
+  }
+  walk(feature.geometry.coordinates)
+  return bounds
+}
+
+/**
+ * Clicking a manufacturer bar drives the ONE global filter, and clicking the
+ * already-selected one clears it. The chart is a control on the existing filter,
+ * never a second chart-local filter -- that is what keeps every card in the
+ * drawer describable by the single slice line in its header.
+ */
+function pickManufacturer(name) {
+  state.manufacturer = state.manufacturer === name ? 'all' : name
+  document.getElementById('manufacturer').value = state.manufacturer
+  applyFilters()
+}
+
+function pickCounty(fips) {
+  const feature = data.counties.features.find((f) => f.id === Number(fips))
+  if (!feature || !map) return
+  map.fitBounds(featureBounds(feature), { padding: 72, duration: 1500, pitch: 0, bearing: 0 })
 }
 
 function fillNotes() {
@@ -487,6 +536,10 @@ async function boot() {
   index = buildIndex(data.turbines.features, state, state.yearMin, state.yearMax)
   timeline = createTimeline(document.getElementById('timeline'), {
     onPick: (year) => { stop(); state.year = year; applyYear() },
+  })
+  dashboard = createDashboard({
+    onPickManufacturer: pickManufacturer,
+    onPickCounty: pickCounty,
   })
 
   fillManufacturers()

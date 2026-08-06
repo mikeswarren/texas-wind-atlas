@@ -86,6 +86,46 @@ pure data in `src/layers.js` and run through the official style-spec validator.
 It caught a real bug during development: a `["zoom"]` expression nested inside
 a `case`, which is illegal and would have silently killed the turbine stroke.
 
+## The analytics dashboard
+
+The **Analytics** button over the map opens a drawer with a KPI strip and five
+charts; `/#analytics` deep-links straight to it, and `Esc` closes it.
+
+The invariant that makes it worth having: **every number in the drawer is derived
+from the same index the map is drawing, at the same selected year, under the same
+filters.** There is no second source of truth and nothing precomputed that could
+drift. Filter to Vestas and it becomes a Vestas dashboard — headline capacity,
+both rankings, the size distribution, and the technology curves all move together,
+and the header states the slice in one sentence.
+
+| Card | Form | Why that form |
+|---|---|---|
+| Cumulative installed capacity | area, one series | a stock over time; the per-year *flow* is its own chart in the sidebar, because putting both on shared axes would need two y-scales |
+| Capacity by manufacturer | ranked bars, top 7 | click a bar to set the global manufacturer filter (click it again to clear) |
+| Capacity by county | ranked bars, top 10 | click a row to zoom the map to that county |
+| Fleet technology | two lines | median hub height and rotor diameter — legal on one axis only because both are metres |
+| Fleet by machine size | histogram, 7 classes | the technology shift, as a distribution rather than an average |
+
+Two decisions in there are load-bearing:
+
+- **The tail is a caption, not a bar.** Texas has 102 wind counties and the 92
+  outside the top 10 hold ~69% of all capacity. Folding them into an eleventh bar
+  made that bar the longest thing on the chart and squashed every real county into
+  a sliver, so the remainder is reported as a caption (`+ 89 more counties ·
+  30,526 MW · 69% of total`) instead. Fully disclosed, but it doesn't set the
+  length scale. The table view lists it as a row like any other and sums to 100%.
+- **Category labels are measured, not estimated.** `Siemens Gamesa Renewable
+  Energy` and `Glasscock County` overflowed a gutter sized by a character-count
+  guess, and an over-long SVG label is silently cropped by the viewBox — the
+  reader gets `newable Energy`. A shared canvas context measures the real string
+  so the ellipsis lands where the text stops fitting; the full name stays in the
+  tooltip, the `<title>`, and the table.
+
+Every card has a **table view** (one toggle in the drawer header), so no value is
+reachable by hover alone. Colours are unchanged from the map's palette — two
+validated categorical slots and one blue sequential ramp — because the only
+two-series chart here happens to be two measures in the same unit.
+
 ## Getting a Mapbox token
 
 Mapbox needs a public access token to serve map tiles. The free tier covers

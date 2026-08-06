@@ -363,7 +363,17 @@ select {
 
 /* ---------- map ---------- */
 
-#map-wrap { position: relative; background: var(--plane); }
+/* The map column is a grid so the analytics drawer can take a row under the map
+   rather than floating over it -- a panel that covers the thing it describes is
+   useless the moment you want to compare the two. */
+#map-wrap {
+  position: relative;
+  background: var(--plane);
+  display: grid;
+  grid-template-rows: 1fr;
+  min-height: 0;
+}
+#map-stage { position: relative; min-height: 0; }
 #map { position: absolute; inset: 0; }
 
 .map-badge {
@@ -517,6 +527,166 @@ select {
 }
 .setup-note { font-size: 11.5px !important; color: var(--text-muted) !important; margin: 12px 0 0 !important; }
 
+/* ---------- analytics drawer ---------- */
+
+.dash-toggle {
+  position: absolute;
+  top: 14px;
+  right: 54px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(13, 13, 13, 0.82);
+  backdrop-filter: blur(8px);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.dash-toggle svg { width: 13px; height: 13px; fill: currentColor; }
+.dash-toggle:hover { color: var(--text-primary); border-color: rgba(255, 255, 255, 0.24); }
+.dash-toggle.on { color: var(--series-1); border-color: rgba(57, 135, 229, 0.55); }
+
+.dash {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+  padding: 0 16px 16px;
+}
+.dash[hidden] { display: none; }
+#app.dash-open #map-wrap { grid-template-rows: minmax(180px, 1fr) minmax(0, 54vh); }
+
+.dash-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0 11px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 13px;
+}
+.dash-title h2 { margin: 0; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+.dash-slice { margin: 4px 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.dash-slice b { color: var(--text-primary); font-weight: 620; font-variant-numeric: tabular-nums; }
+.slice-dim { color: var(--text-muted); }
+.dash-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.icon-btn:hover { color: var(--text-primary); }
+
+/* ---------- KPI strip ---------- */
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+  gap: 10px;
+  margin-bottom: 13px;
+}
+.kpi {
+  background: #1f1f1d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 13px 9px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.kpi-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.01em; }
+/* Proportional figures, not tabular: at display size, tabular digits make a
+   number like 121 look loose. Tabular is for columns (tables, axis ticks). */
+.kpi-value { font-size: 25px; font-weight: 620; letter-spacing: -0.02em; line-height: 1.22; margin-top: 3px; }
+.kpi-hero .kpi-value { font-size: 32px; }
+.kpi-unit { font-size: 11px; color: var(--text-muted); }
+.kpi-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 7px; min-height: 22px; }
+.kpi-delta { font-size: 10.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.kpi-spark { flex: none; line-height: 0; }
+.spark { display: block; }
+
+/* ---------- chart cards ---------- */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(292px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.card {
+  background: #1f1f1d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 13px 10px;
+  min-width: 0;
+}
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+.card-head h3 { margin: 0; font-size: 12.5px; font-weight: 620; color: var(--text-primary); }
+.card-note { font-size: 10.5px; color: var(--text-muted); flex: none; }
+.card-legend { display: flex; gap: 13px; margin: 6px 0 2px; }
+.legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-secondary); }
+.c-key { display: inline-block; width: 9px; height: 3px; border-radius: 2px; flex: none; }
+
+/* Ranked-bar cards size to their rows; the time-series and histogram cards read
+   clientHeight, so those get an explicit one that already includes the axis band. */
+.card-plot { position: relative; margin-top: 8px; }
+.card-tall .card-plot { height: 156px; }
+.card-plot[hidden] { display: none; }
+
+.c-tip {
+  position: absolute;
+  pointer-events: none;
+  background: #232320;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -100%);
+  z-index: 5;
+}
+.c-tip b { font-variant-numeric: tabular-nums; }
+.c-tip[hidden] { display: none; }
+.c-tip-sub { color: var(--text-muted); }
+.c-tip .c-key { margin-right: 5px; vertical-align: middle; }
+
+/* Chart text wears ink tokens only -- never a series colour. */
+.c-tick { font-size: 9.5px; fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+.c-cat { font-size: 11px; fill: var(--text-secondary); }
+.c-value { font-size: 11px; fill: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+.c-bar { transition: opacity 0.12s; }
+.c-hit { cursor: default; }
+.c-hit-click { cursor: pointer; }
+.c-hit:hover ~ .c-bar { opacity: 1; }
+
+/* ---------- table twins ---------- */
+
+.card-table { margin-top: 9px; max-height: 190px; overflow: auto; }
+.card-table[hidden] { display: none; }
+.c-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.c-table th, .c-table td { padding: 4px 6px; text-align: left; border-bottom: 1px solid var(--grid); }
+.c-table th { color: var(--text-muted); font-weight: 500; position: sticky; top: 0; background: #1f1f1d; }
+.c-table td { color: var(--text-secondary); }
+.c-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.c-table tbody tr:last-child td { border-bottom: none; }
+
 /* ---------- responsive ---------- */
 
 @media (max-width: 900px) {
@@ -524,6 +694,10 @@ select {
   #panel { order: 2; border-right: none; border-top: 1px solid var(--border); }
   #map-wrap { order: 1; }
   .panel-head { position: static; }
+  /* On a phone the drawer is the view, not a strip under the map. */
+  #app.dash-open #map-wrap { grid-template-rows: minmax(140px, 0.6fr) minmax(0, 1.6fr); }
+  .dash-grid { grid-template-columns: 1fr; }
+  .dash-toggle { right: 14px; top: 58px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
