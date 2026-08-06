@@ -21,6 +21,9 @@ import { buildIndex, fmt } from './stats.js'
 import { createTimeline, updateStats, renderLegend } from './panel.js'
 import { createDashboard } from './dashboard.js'
 import { createSplitters } from './splitters.js'
+import {
+  REFRESH_MS, buildRoster, fetchMetars, freshnessLine, ageMinutes, formatAge, knotsToMs,
+} from './wx.js'
 
 const state = {
   year: 2025,
@@ -34,6 +37,7 @@ const state = {
   manufacturer: 'all',
   minCap: 0,
   playing: false,
+  wind: false,
 }
 
 let map = null
@@ -43,6 +47,11 @@ let timeline = null
 let dashboard = null
 let clusterDirty = true
 let playTimer = null
+let roster = null        // ICAO id -> baked station record
+let wind = null          // last successful poll, kept across style switches
+let windTimer = null
+let windAgeTimer = null
+let windLoading = false
 
 /* ------------------------------------------------------------------ setup */
 
@@ -93,7 +102,16 @@ async function loadData() {
     get('counties.geojson'),
     get('summary.json'),
   ])
-  return { turbines, counties, summary }
+  // The station roster is optional on purpose. It only feeds the live wind
+  // overlay, so a missing or unreadable stations.json costs that one control --
+  // it must never stop 19,380 turbines from drawing.
+  let stations = null
+  try {
+    stations = (await get('stations.json')).stations
+  } catch {
+    stations = null
+  }
+  return { turbines, counties, summary, stations }
 }
 
 /* ------------------------------------------------------------- map layers */
@@ -104,6 +122,7 @@ function install() {
     counties: data.counties,
     year: state.year,
     filter: turbineFilter(state),
+    metar: wind ? wind.collection : null,
   })
   installTerrain(map, state.terrain)
 }
@@ -120,6 +139,10 @@ function syncVisibility() {
     'county-fill': !turbines && state.countyRender === 'flat',
     'county-3d': !turbines && state.countyRender === 'extruded',
     'county-line': !turbines,
+    // Wind is orthogonal to the turbines/counties split -- it describes right
+    // now rather than a selected year, so it overlays either mode.
+    'metar-wind': state.wind,
+    'metar-calm': state.wind,
   }
   for (const [id, on] of Object.entries(vis)) {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
@@ -197,7 +220,7 @@ function applyYear({ repaintCounties = true } = {}) {
   document.getElementById('year-range').value = state.year
   updateStats(index, state.year)
   timeline.update(index, state.year)
-  renderLegend(state.mode, state.year)
+  renderLegend(state.mode, state.year, { wind: state.wind })
   // The dashboard reads the same index at the same year, so it can never
   // disagree with the map or the tiles.
   if (dashboard) dashboard.update(index, state.year, state)
@@ -227,6 +250,108 @@ function applyAll() {
 /* ---------------------------------------------------------------- popups */
 
 const popup = new mapboxgl.Popup({ closeButton: true, maxWidth: '290px', offset: 12 })
+
+/* ------------------------------------------------------------- live wind */
+
+function windStatus(text, tone = '') {
+  const el = document.getElementById('wind-status')
+  el.textContent = text
+  el.dataset.tone = tone
+  el.hidden = !text
+}
+
+function pushWind() {
+  const source = map && map.getSource('metar')
+  if (source && wind) source.setData(wind.collection)
+}
+
+/**
+ * Poll once. Failures leave the previous reading on the map rather than
+ * blanking it -- an hour-old wind field that says so beats an empty one.
+ */
+async function refreshWind({ manual = false } = {}) {
+  if (!state.wind || windLoading || !roster) return
+  windLoading = true
+  if (!wind || manual) windStatus('Fetching observations…')
+
+  try {
+    wind = await fetchMetars(roster, { base: import.meta.env.BASE_URL })
+    pushWind()
+    windStatus(freshnessLine(wind.collection, { partial: wind.partial }))
+  } catch (err) {
+    windStatus(
+      wind
+        ? `Could not refresh — showing the last reading. ${freshnessLine(wind.collection, { partial: wind.partial })}`
+        : `Live wind unavailable: ${err.message}.`,
+      'warn'
+    )
+  } finally {
+    windLoading = false
+  }
+}
+
+/**
+ * Ages are recomputed on a timer of their own. The observations do not change
+ * between polls, but their age does, and a line reading "observed 3 min ago"
+ * that is really 8 minutes old is the exact failure this layer is meant to
+ * avoid.
+ */
+function startWind() {
+  refreshWind({ manual: true })
+  clearInterval(windTimer)
+  clearInterval(windAgeTimer)
+  windTimer = setInterval(refreshWind, REFRESH_MS)
+  windAgeTimer = setInterval(() => {
+    if (state.wind && wind && !windLoading) {
+      windStatus(freshnessLine(wind.collection, { partial: wind.partial }))
+    }
+  }, 60 * 1000)
+}
+
+function stopWind() {
+  clearInterval(windTimer)
+  clearInterval(windAgeTimer)
+  windTimer = windAgeTimer = null
+  windStatus('')
+}
+
+/** Compass point for a bearing, because "SSW" reads faster than "197°". */
+function compass(deg) {
+  const points = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                  'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+  return points[Math.round(deg / 22.5) % 16]
+}
+
+function windPopup(feature) {
+  const p = feature.properties
+  const age = ageMinutes(p.obs)
+  const ms = knotsToMs(p.spd)
+
+  const direction = p.vrb
+    ? 'Variable'
+    : `From ${compass(p.dir)} ${String(p.dir).padStart(3, '0')}°`
+  const speed = p.spd === 0
+    ? 'Calm'
+    : `${p.spd} kt (${ms.toFixed(1)} m/s)${p.gust ? ` · gusting ${p.gust} kt` : ''}`
+
+  const rows = [
+    ['Wind', direction],
+    ['Speed', speed],
+    ['Observed', formatAge(age)],
+  ]
+  if (p.temp !== null && p.temp !== undefined) rows.push(['Temperature', `${p.temp} °C`])
+  if (p.cat) rows.push(['Flight category', p.cat])
+
+  return `
+    <p class="pop-title">${p.name}</p>
+    <p class="pop-sub">${p.id} · surface wind</p>
+    <dl class="pop-grid">
+      ${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}
+    </dl>
+    ${p.raw ? `<p class="pop-raw">${p.raw}</p>` : ''}
+    <p class="pop-flag">Direction is where the wind blows <b>from</b>; the arrow flies with it.
+      METARs are issued hourly, so this reading is current, not live.</p>`
+}
 
 function turbinePopup(feature) {
   const p = feature.properties
@@ -259,6 +384,16 @@ function wireMapInteractions() {
     map.on('click', layer, (e) => {
       popup.setLngLat(e.features[0].geometry.coordinates.slice())
         .setHTML(turbinePopup(e.features[0]))
+        .addTo(map)
+    })
+    map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer' })
+    map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = '' })
+  }
+
+  for (const layer of ['metar-wind', 'metar-calm']) {
+    map.on('click', layer, (e) => {
+      popup.setLngLat(e.features[0].geometry.coordinates.slice())
+        .setHTML(windPopup(e.features[0]))
         .addTo(map)
     })
     map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer' })
@@ -362,7 +497,7 @@ function wireControls() {
   segmented('mode-toggle', 'mode', () => {
     syncConditionalControls()
     syncVisibility()
-    renderLegend(state.mode, state.year)
+    renderLegend(state.mode, state.year, { wind: state.wind })
     // The 3D choropleth is unreadable straight down; give it a camera to live in.
     if (state.mode === 'counties' && state.countyRender === 'extruded' && map.getPitch() < 20) {
       map.easeTo({ pitch: 50, duration: 800 })
@@ -388,6 +523,16 @@ function wireControls() {
     // If the style is still loading, style.load replays this from state.
     if (mapReady()) installTerrain(map, state.terrain)
     if (state.terrain && map.getPitch() < 20) map.easeTo({ pitch: 55, duration: 900 })
+  })
+
+  document.getElementById('wind-toggle').addEventListener('change', (e) => {
+    state.wind = e.target.checked
+    syncVisibility()
+    // Nothing is fetched until the layer is switched on: a visitor who never
+    // asks for wind should not cost NOAA 215 stations' worth of requests, and
+    // the poll would otherwise keep running behind a hidden layer.
+    if (state.wind) startWind()
+    else stopWind()
   })
 
   const range = document.getElementById('year-range')
@@ -549,6 +694,14 @@ async function boot() {
   fillManufacturers()
   fillNotes()
   syncConditionalControls()
+
+  const windToggle = document.getElementById('wind-toggle')
+  if (data.stations && data.stations.length) {
+    roster = buildRoster(data.stations)
+  } else {
+    windToggle.disabled = true
+    windToggle.closest('.check').title = 'Station roster unavailable — run `npm run data`'
+  }
 
   map = new mapboxgl.Map({
     container: 'map',

@@ -353,6 +353,18 @@ select {
 .legend-row:last-child { margin-bottom: 0; }
 .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
 .swatch-dot { border-radius: 50%; border: 1.4px solid rgba(255,255,255,0.85); }
+/* The wind key reuses the map's own arrow geometry rather than a coloured chip,
+   because length is the encoding and a square swatch cannot show it. */
+.swatch-arrow {
+  width: 12px; height: 15px; border-radius: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.swatch-ring {
+  border-radius: 50%;
+  width: 10px; height: 10px;
+  border: 1.2px solid var(--text-secondary);
+  background: transparent;
+}
 .legend-note { margin: 9px 0 0; font-size: 11px; color: var(--text-muted); line-height: 1.45; }
 
 .ramp { display: flex; gap: 2px; margin-bottom: 6px; }
@@ -500,6 +512,30 @@ select {
   border-top: 1px solid var(--border);
   padding-top: 7px;
 }
+
+/* The raw METAR, verbatim. Monospaced because it is a fixed-width coded format
+   and wrapping it mid-group makes it unreadable to anyone who can decode it. */
+.pop-raw {
+  margin: 9px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+  padding: 6px 7px;
+  overflow-wrap: anywhere;
+}
+
+/* Freshness line under the live-wind toggle. It is the layer's own caveat, so
+   it sits with the control rather than in the legend. */
+.wind-status {
+  margin: 6px 0 0 25px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.wind-status[data-tone='warn'] { color: var(--series-2); }
 
 /* ---------- setup screen ---------- */
 

@@ -35,6 +35,13 @@ USWTDB = "https://energy.usgs.gov/api/uswtdb/v1/turbines"
 COUNTIES_URL = (
     "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
 )
+# Roster of reporting stations for the live METAR layer. The observation
+# endpoint is queried by explicit id list at runtime, so this is what decides
+# which stations the atlas asks about -- see build_stations().
+STATIONINFO = "https://aviationweather.gov/api/data/stationinfo"
+# minLat,minLon,maxLat,maxLon around Texas. Integers on purpose: the upstream
+# gateway 502s on some decimal bboxes.
+TX_BBOX = "25,-107,37,-93"
 TX_FIPS = "48"
 PAGE = 5000
 
@@ -182,6 +189,46 @@ def build_turbines(rows: list[dict]) -> tuple[dict, list[dict]]:
         })
         mapped.append(r)
     return {"type": "FeatureCollection", "features": features}, mapped
+
+
+def build_stations(refresh: bool) -> dict:
+    """Texas stations that report a METAR, for the live wind layer.
+
+    Only the roster is baked. Observations are fetched in the browser and are
+    never written here -- a METAR is stale within the hour, so anything baked
+    would ship already wrong.
+
+    The query is a bounding box because the API has no state filter, so it also
+    returns OK/NM/LA/AR/MO; `state` narrows it back to Texas. Filtering on the
+    observation's `name` suffix instead would be one field simpler and wrong --
+    the current cycle contains a station whose name ends `, TX, TW`, a Taiwanese
+    site whose city abbreviates the same way.
+
+    `priority` (0 = major hub, 9 = minor field) is carried through so the map can
+    thin 215 stations down to the ~34 majors when zoomed out.
+    """
+    raw = json.loads(fetch(f"{STATIONINFO}?bbox={TX_BBOX}&format=json", "tx_stations.json", refresh))
+
+    stations = []
+    for s in raw:
+        if s.get("state") != "TX" or "METAR" not in (s.get("siteType") or []):
+            continue
+        if not s.get("icaoId") or s.get("lat") is None or s.get("lon") is None:
+            continue
+        stations.append({
+            "id": s["icaoId"],
+            "name": s.get("site") or s["icaoId"],
+            "lat": round(float(s["lat"]), 5),
+            "lon": round(float(s["lon"]), 5),
+            # Default to the bottom of the pile rather than the top: an unranked
+            # station showing at statewide zoom would crowd out a real hub.
+            "pri": int(s["priority"]) if s.get("priority") is not None else 9,
+        })
+
+    stations.sort(key=lambda s: (s["pri"], s["id"]))
+    majors = sum(1 for s in stations if s["pri"] <= 3)
+    print(f"  {len(stations)} Texas METAR stations ({majors} at priority <= 3)")
+    return {"stations": stations}
 
 
 def build_counties(rows: list[dict], refresh: bool) -> tuple[dict, dict]:
@@ -352,10 +399,12 @@ def main() -> int:
     turbines, mapped = build_turbines(rows)
     counties, _ = build_counties(mapped, args.refresh)
     summary = build_summary(mapped, counties, imputed, unknown)
+    stations = build_stations(args.refresh)
 
     write(OUT / "turbines.geojson", turbines)
     write(OUT / "counties.geojson", counties)
     write(OUT / "summary.json", summary, minify=False)
+    write(OUT / "stations.json", stations, minify=False)
 
     print(
         f"\n{summary['turbines']:,} turbines mapped  |  {summary['totalMw']:,.0f} MW  |  "

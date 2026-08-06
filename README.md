@@ -22,6 +22,7 @@ Each of these is a distinct Mapbox GL technique, not a restatement of the same o
 | Camera control | `flyTo` presets with per-place pitch and bearing |
 | Style switching | Dark / satellite / terrain basemaps, with full layer re-installation |
 | Popups & hover | Turbine detail popups, county hover via feature-state |
+| Live data + collision | METAR wind arrows, rotated per feature, thinned by `symbol-sort-key` |
 
 The time scrubber animates the build-out from 1999 to 2025. Turbines
 commissioned in the selected year are highlighted, so pressing play shows
@@ -32,6 +33,9 @@ Texas wind arriving county by county.
 - **Turbines** — [U.S. Wind Turbine Database][uswtdb] (USGS, LBNL and ACP),
   Texas subset, public domain. Pulled live from the public PostgREST API.
 - **County boundaries** — U.S. Census cartographic boundary files.
+- **Live wind** — NOAA [aviation weather][awc] METARs, fetched in the browser and
+  never baked: a METAR is stale within the hour, so anything written to disk
+  would ship already wrong. Only the station roster is built ahead of time.
 
 Rebuild the datasets with:
 
@@ -45,7 +49,7 @@ grow: page files are keyed by offset, so `--refresh` overwrites them in place
 rather than stacking generations. Each run prints the cache's size and age so
 the footprint is never a surprise.
 
-`scripts/build_data.py` (standard library only) writes three files into
+`scripts/build_data.py` (standard library only) writes four files into
 `public/data/`:
 
 | File | Contents |
@@ -53,6 +57,7 @@ the footprint is never a surprise.
 | `turbines.geojson` | One point per turbine, short property keys — 4.2 MB raw, 182 KB gzipped |
 | `counties.geojson` | 254 Texas counties with all-time joined statistics |
 | `summary.json` | Statewide rollups, manufacturer list, records |
+| `stations.json` | 215 Texas METAR stations — the roster for the live wind layer |
 
 ### Two data-quality notes
 
@@ -69,6 +74,48 @@ manufacturer and capacity, and a baked-in rollup would disagree with the map
 the moment a filter was applied — the tiles would report all 19,380 turbines
 while the map drew 3,784. `src/stats.js` recomputes them client-side in ~17 ms.
 
+## Live surface wind
+
+A toggle in the map controls overlays current wind at Texas airports, from
+NOAA's [aviation weather API][awc]. 215 stations are on the roster; a typical
+cycle returns ~183 observations in under two seconds.
+
+**It is current, not live, and the UI never pretends otherwise.** A METAR is
+issued once an hour, with a SPECI in between only when conditions change
+materially, so readings in one cycle range from a few minutes to about an hour
+old. Every popup carries its observation's age, and the line under the toggle
+states the whole field's range at once (`183 stations reporting · observed 6 min
+ago to 32 min ago · 5 calm · 13 variable`). Polling is every five minutes —
+faster re-downloads identical bytes — and the edge caches for two, so all
+visitors together cost NOAA one request per two minutes rather than one each.
+
+Three decisions are load-bearing:
+
+- **The arrow is colourless.** Speed is arrow length. Blue means installed
+  capacity everywhere else on this map, and a second magnitude in the same hue
+  would read as the same quantity — so the live layer stays outside the colour
+  system rather than adding a third scale to it.
+- **Variable and calm winds are dots, not arrows.** `wdir` comes back as an
+  integer, the string `"VRB"`, `null`, or with the key missing entirely — in one
+  live cycle, 177 / 21 / 3 / 3. Mapbox coerces all three non-numbers to `0` in
+  `icon-rotate`, which would draw a confident *north* wind at exactly the
+  stations that reported no direction at all. `scripts/test_wx.mjs` pins all four
+  shapes.
+- **Decluttering is collision detection, not a zoom filter.** `zoom` is illegal
+  inside a filter expression, so thinning 215 stations uses
+  `icon-allow-overlap: false` with `symbol-sort-key` set to the station's NOAA
+  priority (0 = major hub). Statewide you get the hubs; zooming in fills in the
+  small fields continuously, with no pop at a breakpoint.
+
+Arrows fly **with** the wind. METAR reports the direction it comes **from**, so
+the icon is rotated a further 180° — the two readings are exact opposites, and
+both the legend and every popup say which is which.
+
+The API sends no `Access-Control-Allow-Origin`, so a browser fetch straight to it
+is refused. The edge Caddy re-serves `/api/data/*` from this origin under `/wx`,
+and `vite.config.js` mirrors that proxy for `npm run dev` — otherwise the layer
+would work in production and fail only in development.
+
 ## Development
 
 ```bash
@@ -80,7 +127,7 @@ npm run dev                # http://127.0.0.1:5178
 Other scripts:
 
 ```bash
-npm run validate           # check every layer against the Mapbox style spec
+npm run validate           # style spec + splitter and METAR regression tests
 npm run build              # production build into dist/
 ./scripts/deploy.sh        # validate, build, pre-compress, publish
 ```
@@ -209,6 +256,11 @@ The site is a static build behind the shared edge Caddy on this server
 - Web root: `/srv/sites/map.hitky.com/`
 - Publish: `./scripts/deploy.sh`, then `~/claude/edge/reload.sh` if routing changed
 
+`map.caddy` also carries the `/wx` reverse proxy the live wind layer depends on.
+That part is **not** shipped by `deploy.sh` — it is edge config, so a change
+there needs `~/claude/edge/reload.sh` (validate-then-hot-reload, zero downtime).
+A deploy without the reload leaves the toggle failing on CORS.
+
 `deploy.sh` pre-compresses the data files and Caddy serves them with
 `precompressed gzip`, so the 4.2 MB turbine feed goes over the wire as 182 KB
 without re-gzipping on every cold request. The deploy also preserves whatever
@@ -305,3 +357,4 @@ scale on shared axes means two y-scales, and that chart cannot be read
 reliably.
 
 [uswtdb]: https://energy.usgs.gov/uswtdb/
+[awc]: https://aviationweather.gov/data/api/

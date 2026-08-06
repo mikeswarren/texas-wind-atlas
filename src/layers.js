@@ -70,6 +70,34 @@ function turbineRadiusExpr() {
   ]
 }
 
+/**
+ * Live wind is drawn in one neutral ink, never in the blue ramp. Blue means
+ * installed capacity everywhere else on this map, and a second magnitude
+ * encoded in the same hue would read as the same quantity. Wind speed is
+ * carried by arrow length instead, which leaves the colour system at its
+ * existing two categorical slots plus one sequential ramp.
+ */
+export const WIND_INK = '#e8e6dc'
+export const WIND_ARROW = 'wind-arrow'
+
+/**
+ * Arrow length by wind speed, in knots. The floor is deliberately well above
+ * zero -- a 2 kt arrow still has to be visibly an arrow, pointing somewhere --
+ * and the ceiling flattens past 35 kt so a single gale does not produce a mark
+ * that covers a county.
+ */
+function windArrowSizeExpr() {
+  const bySpeed = (small, big) => [
+    'interpolate', ['linear'], ['get', 'spd'], 2, small, 35, big,
+  ]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    5, bySpeed(0.28, 0.6),
+    8, bySpeed(0.38, 0.85),
+    12, bySpeed(0.55, 1.25),
+  ]
+}
+
 /** Blue = standing, orange = commissioned in the selected year. */
 function turbineColorExpr(year) {
   return ['case', ['==', ['get', P.year], year], SERIES.added, SERIES.standing]
@@ -111,7 +139,53 @@ export function sourceSpecs() {
     // promoteId is unnecessary: build_data.py writes a numeric feature id (the
     // county FIPS), so feature-state can address polygons directly.
     counties: { type: 'geojson', data: empty },
+    // Live METARs. Starts empty on every style load and is filled by the first
+    // fetch, so a style switch never blocks on the network.
+    metar: { type: 'geojson', data: empty },
   }
+}
+
+/**
+ * The wind arrow, drawn into a canvas rather than shipped as a sprite.
+ *
+ * It has to survive a basemap switch, which destroys every image in the style
+ * along with the layers -- so it is regenerated in installLayers rather than
+ * loaded once at boot. Generating it costs microseconds; a network round trip
+ * for a sprite would race the style load and sometimes lose, leaving a symbol
+ * layer with a missing image and no error beyond a console warning.
+ *
+ * A pale fill over a dark outline keeps it legible on the dark basemap and on
+ * satellite imagery both, which is why it is not an SDF: an SDF is a single
+ * colour by definition, and this mark needs two.
+ */
+export function makeWindArrow(pixelRatio = 2) {
+  const w = 24
+  const h = 34
+  const canvas = document.createElement('canvas')
+  canvas.width = w * pixelRatio
+  canvas.height = h * pixelRatio
+  const ctx = canvas.getContext('2d')
+  ctx.scale(pixelRatio, pixelRatio)
+
+  // Pointing north (up). icon-rotate turns it from there.
+  ctx.beginPath()
+  ctx.moveTo(12, 2)      // tip
+  ctx.lineTo(19, 14)     // right barb
+  ctx.lineTo(13.6, 12)
+  ctx.lineTo(13.6, 31)   // shaft, right side
+  ctx.lineTo(10.4, 31)
+  ctx.lineTo(10.4, 12)   // shaft, left side
+  ctx.lineTo(5, 14)      // left barb
+  ctx.closePath()
+
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = 'rgba(13,13,13,0.85)'
+  ctx.lineWidth = 2.4
+  ctx.stroke()
+  ctx.fillStyle = WIND_INK
+  ctx.fill()
+
+  return ctx.getImageData(0, 0, canvas.width, canvas.height)
 }
 
 export function layerSpecs({ year, filter }) {
@@ -261,16 +335,77 @@ export function layerSpecs({ year, filter }) {
         'circle-stroke-color': 'rgba(13,13,13,0.65)',
       },
     },
+
+    // ---- live surface wind (METAR) -----------------------------------------
+    // Last in the array, so wind draws over both the turbines and the county
+    // choropleth: it is the only layer describing right now rather than history.
+    {
+      id: 'metar-calm',
+      type: 'circle',
+      source: 'metar',
+      // Calm air and variable direction have no bearing to draw. An arrow at 0
+      // degrees would invent a north wind the observation explicitly denies, so
+      // these become hollow dots instead.
+      filter: ['any', ['==', ['get', 'spd'], 0], ['==', ['get', 'vrb'], 1]],
+      layout: { visibility: 'none' },
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2.2, 9, 3.4, 13, 5],
+        'circle-color': 'rgba(0,0,0,0)',
+        'circle-stroke-width': 1.2,
+        'circle-stroke-color': WIND_INK,
+        'circle-stroke-opacity': 0.85,
+      },
+    },
+    {
+      id: 'metar-wind',
+      type: 'symbol',
+      source: 'metar',
+      filter: ['all', ['>', ['get', 'spd'], 0], ['==', ['get', 'vrb'], 0]],
+      layout: {
+        visibility: 'none',
+        'icon-image': WIND_ARROW,
+        // The arrow is drawn pointing north, and `dir` is the direction the wind
+        // comes FROM -- so the icon is turned a further 180 degrees to fly with
+        // the wind rather than into it. The popup states the convention in
+        // words, because the two readings are exact opposites.
+        'icon-rotate': ['+', ['get', 'dir'], 180],
+        // Rotate with the map, not the viewport: a wind bearing is a fact about
+        // the ground, so it has to survive a bearing change from flyTo.
+        'icon-rotation-alignment': 'map',
+        'icon-size': windArrowSizeExpr(),
+        'icon-anchor': 'center',
+        // Decluttering is Mapbox's collision detection, not a zoom filter:
+        // `zoom` is illegal inside a filter expression, and sort-key thinning
+        // adapts continuously instead of popping at a breakpoint. Lower `pri`
+        // (0 = major hub) wins the collision, so statewide zoom keeps the hubs
+        // and fills in the small fields as you go in.
+        'icon-allow-overlap': false,
+        'icon-ignore-placement': false,
+        'symbol-sort-key': ['get', 'pri'],
+      },
+      paint: {
+        'icon-opacity': 0.95,
+      },
+    },
   ]
 }
 
-export function installLayers(map, { turbines, counties, year, filter }) {
+export function installLayers(map, { turbines, counties, year, filter, metar }) {
   const sources = sourceSpecs()
   sources.turbines.data = turbines
   sources.counties.data = counties
+  // Re-seed with whatever the last poll returned, so a basemap switch does not
+  // blank the wind for the five minutes until the next one.
+  if (metar) sources.metar.data = metar
 
   for (const [id, spec] of Object.entries(sources)) {
     if (!map.getSource(id)) map.addSource(id, spec)
+  }
+
+  // Before the layers: a symbol layer whose icon is missing renders nothing and
+  // says so only in the console.
+  if (!map.hasImage(WIND_ARROW)) {
+    map.addImage(WIND_ARROW, makeWindArrow(2), { pixelRatio: 2 })
   }
 
   // Insert everything beneath the basemap's own label layers so place names

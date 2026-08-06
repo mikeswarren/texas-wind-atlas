@@ -59,5 +59,16 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5178,
+    proxy: {
+      // Mirrors the /wx reverse proxy the edge Caddy provides in production
+      // (caddy-sites/map.caddy). NOAA's aviation weather API sends no CORS
+      // header, so without this the live wind layer works on map.hitky.com and
+      // fails only in development -- the worst way round.
+      '/wx/api/data': {
+        target: 'https://aviationweather.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/wx/, ''),
+      },
+    },
   },
 })

@@ -1,0 +1,1509 @@
+{
+  "stations": [
+    {
+      "id": "KDFW",
+      "name": "Dallas-Ft Worth Intl",
+      "lat": 32.89744,
+      "lon": -97.02195,
+      "pri": 0
+    },
+    {
+      "id": "KBRO",
+      "name": "Brownsville Intl",
+      "lat": 25.91459,
+      "lon": -97.42314,
+      "pri": 1
+    },
+    {
+      "id": "KMAF",
+      "name": "Midland Intl",
+      "lat": 31.94754,
+      "lon": -102.20858,
+      "pri": 1
+    },
+    {
+      "id": "KSAT",
+      "name": "San Antonio Intl",
+      "lat": 29.54429,
+      "lon": -98.48394,
+      "pri": 1
+    },
+    {
+      "id": "KABI",
+      "name": "Abilene Rgnl",
+      "lat": 32.41062,
+      "lon": -99.68208,
+      "pri": 2
+    },
+    {
+      "id": "KAMA",
+      "name": "Amarillo Intl Arpt",
+      "lat": 35.22028,
+      "lon": -101.71733,
+      "pri": 2
+    },
+    {
+      "id": "KCRP",
+      "name": "Corpus Christi Intl",
+      "lat": 27.77335,
+      "lon": -97.51298,
+      "pri": 2
+    },
+    {
+      "id": "KDRT",
+      "name": "Del Rio Intl",
+      "lat": 29.37839,
+      "lon": -100.92703,
+      "pri": 2
+    },
+    {
+      "id": "KELP",
+      "name": "El Paso Intl",
+      "lat": 31.81233,
+      "lon": -106.37737,
+      "pri": 2
+    },
+    {
+      "id": "KIAH",
+      "name": "Houston/Bush Intl",
+      "lat": 29.98438,
+      "lon": -95.36072,
+      "pri": 2
+    },
+    {
+      "id": "KLBB",
+      "name": "Lubbock Intl Arpt",
+      "lat": 33.66578,
+      "lon": -101.8233,
+      "pri": 2
+    },
+    {
+      "id": "KMRF",
+      "name": "Marfa Muni",
+      "lat": 30.37065,
+      "lon": -104.01173,
+      "pri": 2
+    },
+    {
+      "id": "K6R6",
+      "name": "Dryden/Terrell Cnty",
+      "lat": 30.04816,
+      "lon": -102.21266,
+      "pri": 3
+    },
+    {
+      "id": "KACT",
+      "name": "Waco Rgnl",
+      "lat": 31.61797,
+      "lon": -97.22829,
+      "pri": 3
+    },
+    {
+      "id": "KAUS",
+      "name": "Austin/Bergstrom Intl",
+      "lat": 30.1831,
+      "lon": -97.68063,
+      "pri": 3
+    },
+    {
+      "id": "KBPT",
+      "name": "Beaumont/SE Texas Rgnl",
+      "lat": 29.95206,
+      "lon": -94.02616,
+      "pri": 3
+    },
+    {
+      "id": "KBWD",
+      "name": "Brownwood Muni",
+      "lat": 31.78984,
+      "lon": -98.95218,
+      "pri": 3
+    },
+    {
+      "id": "KCDS",
+      "name": "Childress Muni",
+      "lat": 34.42746,
+      "lon": -100.28391,
+      "pri": 3
+    },
+    {
+      "id": "KCLL",
+      "name": "College Station/Easterwood Arpt",
+      "lat": 30.59119,
+      "lon": -96.36308,
+      "pri": 3
+    },
+    {
+      "id": "KCOT",
+      "name": "Cotulla/LaSalle Cnty",
+      "lat": 28.45851,
+      "lon": -99.22276,
+      "pri": 3
+    },
+    {
+      "id": "KCRH",
+      "name": "West Cameron",
+      "lat": 28.909,
+      "lon": -93.302,
+      "pri": 3
+    },
+    {
+      "id": "KFST",
+      "name": "Fort Stockton/Pecos Cnty",
+      "lat": 30.91193,
+      "lon": -102.91714,
+      "pri": 3
+    },
+    {
+      "id": "KGDP",
+      "name": "Guadalupe Pass",
+      "lat": 31.83274,
+      "lon": -104.80899,
+      "pri": 3
+    },
+    {
+      "id": "KGGG",
+      "name": "Longview/Gregg Cnty",
+      "lat": 32.39094,
+      "lon": -94.71396,
+      "pri": 3
+    },
+    {
+      "id": "KGRK",
+      "name": "Killeen-Ft Hood Rgnl",
+      "lat": 31.07789,
+      "lon": -97.83228,
+      "pri": 3
+    },
+    {
+      "id": "KGUL",
+      "name": "Gurden Banks 668",
+      "lat": 27.3039,
+      "lon": -93.5383,
+      "pri": 3
+    },
+    {
+      "id": "KGVW",
+      "name": "Galveston 209B",
+      "lat": 29.1303,
+      "lon": -94.5466,
+      "pri": 3
+    },
+    {
+      "id": "KHHV",
+      "name": "Alaminos Canyon 25",
+      "lat": 26.9392,
+      "lon": -94.6886,
+      "pri": 3
+    },
+    {
+      "id": "KJCT",
+      "name": "Junction/Kimble Cnty",
+      "lat": 30.51046,
+      "lon": -99.7665,
+      "pri": 3
+    },
+    {
+      "id": "KLFK",
+      "name": "Lufkin/Angelina Cnty",
+      "lat": 31.2359,
+      "lon": -94.75465,
+      "pri": 3
+    },
+    {
+      "id": "KLRD",
+      "name": "Laredo Intl",
+      "lat": 27.55103,
+      "lon": -99.46143,
+      "pri": 3
+    },
+    {
+      "id": "KOPM",
+      "name": "N Padre Isl 975",
+      "lat": 26.833,
+      "lon": -96.94,
+      "pri": 3
+    },
+    {
+      "id": "KSJT",
+      "name": "San Angelo/Mathis Fld",
+      "lat": 31.35171,
+      "lon": -100.49477,
+      "pri": 3
+    },
+    {
+      "id": "KSPS",
+      "name": "Wichita Falls Rgnl",
+      "lat": 33.97855,
+      "lon": -98.49297,
+      "pri": 3
+    },
+    {
+      "id": "K11R",
+      "name": "Brenham Muni",
+      "lat": 30.22316,
+      "lon": -96.37342,
+      "pri": 4
+    },
+    {
+      "id": "K3T5",
+      "name": "LaGrange/Fayette Rgnl",
+      "lat": 29.90637,
+      "lon": -96.94778,
+      "pri": 4
+    },
+    {
+      "id": "K5T9",
+      "name": "Maverick County Arpt",
+      "lat": 28.85675,
+      "lon": -100.51587,
+      "pri": 4
+    },
+    {
+      "id": "K6R3",
+      "name": "Cleveland Muni",
+      "lat": 30.35798,
+      "lon": -95.00697,
+      "pri": 4
+    },
+    {
+      "id": "KALI",
+      "name": "Alice Intl",
+      "lat": 27.74131,
+      "lon": -98.02506,
+      "pri": 4
+    },
+    {
+      "id": "KAPY",
+      "name": "Zapata Cnty",
+      "lat": 26.969,
+      "lon": -99.249,
+      "pri": 4
+    },
+    {
+      "id": "KBBD",
+      "name": "Brady/Curtis Fld",
+      "lat": 31.1766,
+      "lon": -99.32292,
+      "pri": 4
+    },
+    {
+      "id": "KBEA",
+      "name": "Beeville Muni",
+      "lat": 28.36919,
+      "lon": -97.79535,
+      "pri": 4
+    },
+    {
+      "id": "KBGD",
+      "name": "Borger/Hutchinson Cnty",
+      "lat": 35.69502,
+      "lon": -101.39551,
+      "pri": 4
+    },
+    {
+      "id": "KBKD",
+      "name": "Breckenridge/Stephens Cnty",
+      "lat": 32.72061,
+      "lon": -98.89311,
+      "pri": 4
+    },
+    {
+      "id": "KBPG",
+      "name": "Big Springs/McMahon ",
+      "lat": 32.20974,
+      "lon": -101.52472,
+      "pri": 4
+    },
+    {
+      "id": "KBQX",
+      "name": "Brazos 538",
+      "lat": 28.314,
+      "lon": -95.62,
+      "pri": 4
+    },
+    {
+      "id": "KCRS",
+      "name": "Corsicana Muni",
+      "lat": 32.03156,
+      "lon": -96.39938,
+      "pri": 4
+    },
+    {
+      "id": "KCZT",
+      "name": "Carrizo Springs Arpt",
+      "lat": 28.52044,
+      "lon": -99.81918,
+      "pri": 4
+    },
+    {
+      "id": "KDHT",
+      "name": "Dalhart Muni",
+      "lat": 36.02516,
+      "lon": -102.54875,
+      "pri": 4
+    },
+    {
+      "id": "KDZB",
+      "name": "Marble Falls/Horseshoe Bay Arpt",
+      "lat": 30.52098,
+      "lon": -98.3574,
+      "pri": 4
+    },
+    {
+      "id": "KE41",
+      "name": "Big Lake/Reagan Cnty",
+      "lat": 31.19448,
+      "lon": -101.47324,
+      "pri": 4
+    },
+    {
+      "id": "KECU",
+      "name": "Rocksprings/Edwards Cnty",
+      "lat": 29.94801,
+      "lon": -100.17356,
+      "pri": 4
+    },
+    {
+      "id": "KEMK",
+      "name": "East Breaks 165",
+      "lat": 27.8186,
+      "lon": -94.3228,
+      "pri": 4
+    },
+    {
+      "id": "KERV",
+      "name": "Kerrville Muni",
+      "lat": 29.97794,
+      "lon": -99.08725,
+      "pri": 4
+    },
+    {
+      "id": "KF17",
+      "name": "Center Muni",
+      "lat": 31.8277,
+      "lon": -94.15402,
+      "pri": 4
+    },
+    {
+      "id": "KGLE",
+      "name": "Gainesville Muni",
+      "lat": 33.65253,
+      "lon": -97.19805,
+      "pri": 4
+    },
+    {
+      "id": "KGLS",
+      "name": "Galveston/Scholes Intl",
+      "lat": 29.27037,
+      "lon": -94.86422,
+      "pri": 4
+    },
+    {
+      "id": "KGNC",
+      "name": "Seminole/Gaines Cnty",
+      "lat": 32.678,
+      "lon": -102.65,
+      "pri": 4
+    },
+    {
+      "id": "KGTU",
+      "name": "Georgetown Muni",
+      "lat": 30.68088,
+      "lon": -97.67667,
+      "pri": 4
+    },
+    {
+      "id": "KGVT",
+      "name": "Greenville/Majors Arpt",
+      "lat": 33.06688,
+      "lon": -96.06143,
+      "pri": 4
+    },
+    {
+      "id": "KGYF",
+      "name": "Alaminos Canyon Blk 857",
+      "lat": 26.1292,
+      "lon": -94.8981,
+      "pri": 4
+    },
+    {
+      "id": "KHBV",
+      "name": "Hebbronville/Hogg Cnty",
+      "lat": 27.35159,
+      "lon": -98.74154,
+      "pri": 4
+    },
+    {
+      "id": "KHDO",
+      "name": "Hondo Muni",
+      "lat": 29.36014,
+      "lon": -99.17422,
+      "pri": 4
+    },
+    {
+      "id": "KHHF",
+      "name": "Canadian/Hemphill Cnty",
+      "lat": 35.89292,
+      "lon": -100.40462,
+      "pri": 4
+    },
+    {
+      "id": "KHQI",
+      "name": "High Island 376",
+      "lat": 27.9619,
+      "lon": -93.6708,
+      "pri": 4
+    },
+    {
+      "id": "KHRX",
+      "name": "Hereford Muni",
+      "lat": 34.86277,
+      "lon": -102.31998,
+      "pri": 4
+    },
+    {
+      "id": "KHYI",
+      "name": "San Marcos Muni",
+      "lat": 29.89584,
+      "lon": -97.86644,
+      "pri": 4
+    },
+    {
+      "id": "KINK",
+      "name": "Wink/Winkler Cnty",
+      "lat": 31.7801,
+      "lon": -103.20172,
+      "pri": 4
+    },
+    {
+      "id": "KJAS",
+      "name": "Jasper/Bell Fld",
+      "lat": 30.89039,
+      "lon": -94.03318,
+      "pri": 4
+    },
+    {
+      "id": "KLBX",
+      "name": "Angleton/Texas Gulf Coast Rgnl",
+      "lat": 29.11537,
+      "lon": -95.46324,
+      "pri": 4
+    },
+    {
+      "id": "KLLN",
+      "name": "Levelland Muni",
+      "lat": 33.55601,
+      "lon": -102.37514,
+      "pri": 4
+    },
+    {
+      "id": "KLUV",
+      "name": "Lamesa Muni",
+      "lat": 32.74813,
+      "lon": -101.91274,
+      "pri": 4
+    },
+    {
+      "id": "KMFE",
+      "name": "McAllen/Miller Intl",
+      "lat": 26.17911,
+      "lon": -98.2445,
+      "pri": 4
+    },
+    {
+      "id": "KMIU",
+      "name": "Mustang Island",
+      "lat": 27.29,
+      "lon": -96.74,
+      "pri": 4
+    },
+    {
+      "id": "KMNZ",
+      "name": "Hamilton Muni",
+      "lat": 31.66971,
+      "lon": -98.14624,
+      "pri": 4
+    },
+    {
+      "id": "KMWL",
+      "name": "Mineral Wells Arpt",
+      "lat": 32.78155,
+      "lon": -98.06022,
+      "pri": 4
+    },
+    {
+      "id": "KMZG",
+      "name": "Mustang Island",
+      "lat": 27.7269,
+      "lon": -96.1911,
+      "pri": 4
+    },
+    {
+      "id": "KOCH",
+      "name": "Nacogdoches Rgnl",
+      "lat": 31.58089,
+      "lon": -94.70807,
+      "pri": 4
+    },
+    {
+      "id": "KOSA",
+      "name": "Mount Pleasant Rgnl",
+      "lat": 33.09363,
+      "lon": -94.96007,
+      "pri": 4
+    },
+    {
+      "id": "KOZA",
+      "name": "Ozona Muni",
+      "lat": 30.73123,
+      "lon": -101.20332,
+      "pri": 4
+    },
+    {
+      "id": "KPEZ",
+      "name": "Pleasanton Muni",
+      "lat": 28.9561,
+      "lon": -98.5184,
+      "pri": 4
+    },
+    {
+      "id": "KPRS",
+      "name": "Presidio/Lely Intl",
+      "lat": 29.63459,
+      "lon": -104.35848,
+      "pri": 4
+    },
+    {
+      "id": "KPRX",
+      "name": "Paris/Cox Fld",
+      "lat": 33.63595,
+      "lon": -95.45145,
+      "pri": 4
+    },
+    {
+      "id": "KPSN",
+      "name": "Palestine Muni",
+      "lat": 31.77841,
+      "lon": -95.70478,
+      "pri": 4
+    },
+    {
+      "id": "KPSX",
+      "name": "Palacios Muni",
+      "lat": 28.7248,
+      "lon": -96.25353,
+      "pri": 4
+    },
+    {
+      "id": "KPVW",
+      "name": "Plainview/Hale Cnty",
+      "lat": 34.169,
+      "lon": -101.723,
+      "pri": 4
+    },
+    {
+      "id": "KPYX",
+      "name": "Perryton/Ochiltree Cnty",
+      "lat": 36.41032,
+      "lon": -100.7514,
+      "pri": 4
+    },
+    {
+      "id": "KRKP",
+      "name": "Rockport/Aransas Cnty",
+      "lat": 28.08366,
+      "lon": -97.04669,
+      "pri": 4
+    },
+    {
+      "id": "KSEP",
+      "name": "Stephenville/Clark Rgnl",
+      "lat": 32.21503,
+      "lon": -98.17933,
+      "pri": 4
+    },
+    {
+      "id": "KSNK",
+      "name": "Snyder/Winston Fld",
+      "lat": 32.69168,
+      "lon": -100.95052,
+      "pri": 4
+    },
+    {
+      "id": "KT20",
+      "name": "Gonzales Muni",
+      "lat": 29.53015,
+      "lon": -97.46298,
+      "pri": 4
+    },
+    {
+      "id": "K0F2",
+      "name": "Bowie Muni",
+      "lat": 33.6011,
+      "lon": -97.77354,
+      "pri": 5
+    },
+    {
+      "id": "K2R9",
+      "name": "Kenedy/Karnes Cnty",
+      "lat": 28.82673,
+      "lon": -97.86757,
+      "pri": 5
+    },
+    {
+      "id": "K4F2",
+      "name": "Carthage/Panola Cnty",
+      "lat": 32.18001,
+      "lon": -94.29764,
+      "pri": 5
+    },
+    {
+      "id": "K5C1",
+      "name": "Boerne/Stage Fld",
+      "lat": 29.72675,
+      "lon": -98.69642,
+      "pri": 5
+    },
+    {
+      "id": "K60R",
+      "name": "Navasota Muni",
+      "lat": 30.368,
+      "lon": -96.113,
+      "pri": 5
+    },
+    {
+      "id": "K66R",
+      "name": "Columbus/Well Arpt",
+      "lat": 29.63823,
+      "lon": -96.51375,
+      "pri": 5
+    },
+    {
+      "id": "K6P9",
+      "name": "Ranger Arpt",
+      "lat": 32.42935,
+      "lon": -98.59594,
+      "pri": 5
+    },
+    {
+      "id": "K81R",
+      "name": "San Saba Muni",
+      "lat": 31.23212,
+      "lon": -98.7154,
+      "pri": 5
+    },
+    {
+      "id": "K8T6",
+      "name": "George West/Live Oak Cnty",
+      "lat": 28.36559,
+      "lon": -98.11741,
+      "pri": 5
+    },
+    {
+      "id": "KAQO",
+      "name": "Llano Muni",
+      "lat": 30.78729,
+      "lon": -98.66077,
+      "pri": 5
+    },
+    {
+      "id": "KARM",
+      "name": "Wharton Rgnl",
+      "lat": 29.25147,
+      "lon": -96.1508,
+      "pri": 5
+    },
+    {
+      "id": "KASL",
+      "name": "Marshall/Harrison Cnty",
+      "lat": 32.52075,
+      "lon": -94.30661,
+      "pri": 5
+    },
+    {
+      "id": "KATA",
+      "name": "Atlanta Muni",
+      "lat": 33.10173,
+      "lon": -94.19366,
+      "pri": 5
+    },
+    {
+      "id": "KBAZ",
+      "name": "New Braunfels Muni",
+      "lat": 29.70888,
+      "lon": -98.04585,
+      "pri": 5
+    },
+    {
+      "id": "KBKS",
+      "name": "Falfurrias/Brooks Cnty",
+      "lat": 27.20643,
+      "lon": -98.12161,
+      "pri": 5
+    },
+    {
+      "id": "KBMQ",
+      "name": "Burnet Muni",
+      "lat": 30.74068,
+      "lon": -98.23541,
+      "pri": 5
+    },
+    {
+      "id": "KBPC",
+      "name": "Pampa/Mesa Vista Ranch Arpt",
+      "lat": 35.8913,
+      "lon": -101.0275,
+      "pri": 5
+    },
+    {
+      "id": "KBYY",
+      "name": "Bay City Muni",
+      "lat": 28.97172,
+      "lon": -95.85837,
+      "pri": 5
+    },
+    {
+      "id": "KCOM",
+      "name": "Coleman Muni",
+      "lat": 31.84148,
+      "lon": -99.40578,
+      "pri": 5
+    },
+    {
+      "id": "KCPT",
+      "name": "Cleburne Muni",
+      "lat": 32.35261,
+      "lon": -97.43497,
+      "pri": 5
+    },
+    {
+      "id": "KCXO",
+      "name": "Conroe/Executive Arpt",
+      "lat": 30.36108,
+      "lon": -95.41758,
+      "pri": 5
+    },
+    {
+      "id": "KDKR",
+      "name": "Crockett/Houston Cnty",
+      "lat": 31.3097,
+      "lon": -95.40391,
+      "pri": 5
+    },
+    {
+      "id": "KDTO",
+      "name": "Denton Muni",
+      "lat": 33.20884,
+      "lon": -97.19923,
+      "pri": 5
+    },
+    {
+      "id": "KDUX",
+      "name": "Dumas/Moore Cnty",
+      "lat": 35.8608,
+      "lon": -102.00948,
+      "pri": 5
+    },
+    {
+      "id": "KE01",
+      "name": "Monahans/Hurd Mem",
+      "lat": 31.5804,
+      "lon": -102.9081,
+      "pri": 5
+    },
+    {
+      "id": "KE11",
+      "name": "Andrews Cnty",
+      "lat": 32.32807,
+      "lon": -102.52831,
+      "pri": 5
+    },
+    {
+      "id": "KE38",
+      "name": "Alpine/Casparis Muni",
+      "lat": 30.38513,
+      "lon": -103.68034,
+      "pri": 5
+    },
+    {
+      "id": "KE42",
+      "name": "Spearman Muni",
+      "lat": 36.21934,
+      "lon": -101.19398,
+      "pri": 5
+    },
+    {
+      "id": "KE57",
+      "name": "Denver City Arpt",
+      "lat": 32.976,
+      "lon": -102.843,
+      "pri": 5
+    },
+    {
+      "id": "KEBG",
+      "name": "Edinburg/S Texas Intl",
+      "lat": 26.44332,
+      "lon": -98.12549,
+      "pri": 5
+    },
+    {
+      "id": "KEDC",
+      "name": "Austin/Executive Arpt",
+      "lat": 30.39263,
+      "lon": -97.56215,
+      "pri": 5
+    },
+    {
+      "id": "KF00",
+      "name": "Bonham/Jones Fld",
+      "lat": 33.61581,
+      "lon": -96.18092,
+      "pri": 5
+    },
+    {
+      "id": "KF05",
+      "name": "Vernon/Wilbarger Cnty",
+      "lat": 34.22834,
+      "lon": -99.28337,
+      "pri": 5
+    },
+    {
+      "id": "KF44",
+      "name": "Athens Muni",
+      "lat": 32.165,
+      "lon": -95.829,
+      "pri": 5
+    },
+    {
+      "id": "KF46",
+      "name": "Rockwall Muni",
+      "lat": 32.93218,
+      "lon": -96.43486,
+      "pri": 5
+    },
+    {
+      "id": "KFTN",
+      "name": "Faith Ranch Arpt",
+      "lat": 28.21113,
+      "lon": -100.0236,
+      "pri": 5
+    },
+    {
+      "id": "KFTW",
+      "name": "Fort Worth/Meacham Intl",
+      "lat": 32.82478,
+      "lon": -97.36403,
+      "pri": 5
+    },
+    {
+      "id": "KFWS",
+      "name": "Fort Worth/Spinks Arpt",
+      "lat": 32.558,
+      "lon": -97.308,
+      "pri": 5
+    },
+    {
+      "id": "KGDJ",
+      "name": "Granbury Muni",
+      "lat": 32.44688,
+      "lon": -97.81705,
+      "pri": 5
+    },
+    {
+      "id": "KGOP",
+      "name": "Gatesville Muni",
+      "lat": 31.42077,
+      "lon": -97.79512,
+      "pri": 5
+    },
+    {
+      "id": "KGYB",
+      "name": "Giddings/Lee Cnty",
+      "lat": 30.17144,
+      "lon": -96.97847,
+      "pri": 5
+    },
+    {
+      "id": "KGYI",
+      "name": "Dennison/N Texas Rgnl",
+      "lat": 33.72307,
+      "lon": -96.67144,
+      "pri": 5
+    },
+    {
+      "id": "KGZN",
+      "name": "Cisco/Simmons Mem",
+      "lat": 32.36816,
+      "lon": -99.02596,
+      "pri": 5
+    },
+    {
+      "id": "KHOU",
+      "name": "Houston/Hobby Arpt",
+      "lat": 29.64582,
+      "lon": -95.28214,
+      "pri": 5
+    },
+    {
+      "id": "KHRL",
+      "name": "Harlingen/Valley Intl",
+      "lat": 26.2303,
+      "lon": -97.65565,
+      "pri": 5
+    },
+    {
+      "id": "KINJ",
+      "name": "Hillsboro Muni",
+      "lat": 32.08435,
+      "lon": -97.09586,
+      "pri": 5
+    },
+    {
+      "id": "KJDD",
+      "name": "Mineola/Wood Cnty",
+      "lat": 32.7403,
+      "lon": -95.49446,
+      "pri": 5
+    },
+    {
+      "id": "KJSO",
+      "name": "Jacksonvil0e/Cherokee Cnty",
+      "lat": 31.86896,
+      "lon": -95.21453,
+      "pri": 5
+    },
+    {
+      "id": "KJWY",
+      "name": "Midlothian/Mid-Way Rgnl",
+      "lat": 32.456,
+      "lon": -96.914,
+      "pri": 5
+    },
+    {
+      "id": "KJXI",
+      "name": "Gilmer/Stephens Fld",
+      "lat": 32.70364,
+      "lon": -94.94709,
+      "pri": 5
+    },
+    {
+      "id": "KLBR",
+      "name": "Clarksville/Trissell Fld",
+      "lat": 33.59533,
+      "lon": -95.06534,
+      "pri": 5
+    },
+    {
+      "id": "KLHB",
+      "name": "Hearne Muni",
+      "lat": 30.8693,
+      "lon": -96.62071,
+      "pri": 5
+    },
+    {
+      "id": "KLUD",
+      "name": "Decatur Muni",
+      "lat": 33.25684,
+      "lon": -97.58256,
+      "pri": 5
+    },
+    {
+      "id": "KLXY",
+      "name": "Mexia/Limestone Cnty",
+      "lat": 31.64462,
+      "lon": -96.51218,
+      "pri": 5
+    },
+    {
+      "id": "KLZZ",
+      "name": "Lampasas Arpt",
+      "lat": 31.10591,
+      "lon": -98.19748,
+      "pri": 5
+    },
+    {
+      "id": "KMKN",
+      "name": "Comanche Cnty",
+      "lat": 31.92403,
+      "lon": -98.59776,
+      "pri": 5
+    },
+    {
+      "id": "KNGP",
+      "name": "Corpus Christi/Truax Fld NAS",
+      "lat": 27.688,
+      "lon": -97.292,
+      "pri": 5
+    },
+    {
+      "id": "KNMT",
+      "name": "McMullen Target Site",
+      "lat": 28.236,
+      "lon": -98.724,
+      "pri": 5
+    },
+    {
+      "id": "KNOG",
+      "name": "Orange Grove",
+      "lat": 27.895,
+      "lon": -98.043,
+      "pri": 5
+    },
+    {
+      "id": "KNQI",
+      "name": "Kingsville",
+      "lat": 27.507,
+      "lon": -97.81,
+      "pri": 5
+    },
+    {
+      "id": "KORG",
+      "name": "Orange/Orange Cnty",
+      "lat": 30.06804,
+      "lon": -93.8043,
+      "pri": 5
+    },
+    {
+      "id": "KPEQ",
+      "name": "Pecos Muni",
+      "lat": 31.38205,
+      "lon": -103.51174,
+      "pri": 5
+    },
+    {
+      "id": "KPIL",
+      "name": "Port Isabel/Cameron Cnty",
+      "lat": 26.15966,
+      "lon": -97.33784,
+      "pri": 5
+    },
+    {
+      "id": "KPKV",
+      "name": "Port Lavaca/Calhoun Cnty",
+      "lat": 28.64988,
+      "lon": -96.67987,
+      "pri": 5
+    },
+    {
+      "id": "KPPA",
+      "name": "Pampa/Lefors Fld",
+      "lat": 35.61391,
+      "lon": -100.99725,
+      "pri": 5
+    },
+    {
+      "id": "KRBD",
+      "name": "Dallas/Executive Arpt",
+      "lat": 32.67818,
+      "lon": -96.86772,
+      "pri": 5
+    },
+    {
+      "id": "KRFI",
+      "name": "Henderson/Rusk Cnty",
+      "lat": 32.14415,
+      "lon": -94.85388,
+      "pri": 5
+    },
+    {
+      "id": "KRPH",
+      "name": "Graham Muni",
+      "lat": 33.10955,
+      "lon": -98.55374,
+      "pri": 5
+    },
+    {
+      "id": "KRWV",
+      "name": "Caldwell Muni",
+      "lat": 30.51615,
+      "lon": -96.7051,
+      "pri": 5
+    },
+    {
+      "id": "KRYW",
+      "name": "Lago Vista/Allen Arpt",
+      "lat": 30.498,
+      "lon": -97.969,
+      "pri": 5
+    },
+    {
+      "id": "KSKF",
+      "name": "Lackland AFB/Kelly Fld",
+      "lat": 29.392,
+      "lon": -98.581,
+      "pri": 5
+    },
+    {
+      "id": "KSLR",
+      "name": "Sulphur Springs Muni",
+      "lat": 33.16149,
+      "lon": -95.61888,
+      "pri": 5
+    },
+    {
+      "id": "KSOA",
+      "name": "Sonora Muni",
+      "lat": 30.58531,
+      "lon": -100.65062,
+      "pri": 5
+    },
+    {
+      "id": "KSWW",
+      "name": "Sweetwater/Avenger Fld",
+      "lat": 32.46883,
+      "lon": -100.46686,
+      "pri": 5
+    },
+    {
+      "id": "KADS",
+      "name": "Dallas/Addison Arpt",
+      "lat": 32.96341,
+      "lon": -96.83542,
+      "pri": 6
+    },
+    {
+      "id": "KAFW",
+      "name": "Fort Worth/Alliance Arpt",
+      "lat": 32.99,
+      "lon": -97.32,
+      "pri": 6
+    },
+    {
+      "id": "KATT",
+      "name": "Austin/Camp Mabry",
+      "lat": 30.32077,
+      "lon": -97.76043,
+      "pri": 6
+    },
+    {
+      "id": "KAXH",
+      "name": "Houston/SW Arpt",
+      "lat": 29.50501,
+      "lon": -95.47596,
+      "pri": 6
+    },
+    {
+      "id": "KBBF",
+      "name": "Brazos 133",
+      "lat": 27.835,
+      "lon": -96.0131,
+      "pri": 6
+    },
+    {
+      "id": "KBIF",
+      "name": "Biggs",
+      "lat": 31.861,
+      "lon": -106.369,
+      "pri": 6
+    },
+    {
+      "id": "KBMT",
+      "name": "Beaumont Muni",
+      "lat": 30.06856,
+      "lon": -94.21548,
+      "pri": 6
+    },
+    {
+      "id": "KCFD",
+      "name": "Bryan/Coulter Fld",
+      "lat": 30.71705,
+      "lon": -96.33475,
+      "pri": 6
+    },
+    {
+      "id": "KCNW",
+      "name": "Waco/Texas State Tech Arpt",
+      "lat": 31.637,
+      "lon": -97.071,
+      "pri": 6
+    },
+    {
+      "id": "KCVB",
+      "name": "Castroville Muni",
+      "lat": 29.34304,
+      "lon": -98.84969,
+      "pri": 6
+    },
+    {
+      "id": "KCWC",
+      "name": "Wichita Falls/Kickapoo Arpt",
+      "lat": 33.86295,
+      "lon": -98.49144,
+      "pri": 6
+    },
+    {
+      "id": "KDAL",
+      "name": "Dallas/Love Fld",
+      "lat": 32.83836,
+      "lon": -96.83584,
+      "pri": 6
+    },
+    {
+      "id": "KDLF",
+      "name": "Laughlin AFB",
+      "lat": 29.36656,
+      "lon": -100.78467,
+      "pri": 6
+    },
+    {
+      "id": "KDWH",
+      "name": "Houston/Hooks Mem",
+      "lat": 30.068,
+      "lon": -95.55627,
+      "pri": 6
+    },
+    {
+      "id": "KDYS",
+      "name": "Abilene/Dyess AFB",
+      "lat": 32.406,
+      "lon": -99.85,
+      "pri": 6
+    },
+    {
+      "id": "KE35",
+      "name": "Fabens",
+      "lat": 31.5151,
+      "lon": -106.14572,
+      "pri": 6
+    },
+    {
+      "id": "KELA",
+      "name": "Eagle Lake Arpt",
+      "lat": 29.60197,
+      "lon": -96.3239,
+      "pri": 6
+    },
+    {
+      "id": "KETN",
+      "name": "Eastland Muni",
+      "lat": 32.41642,
+      "lon": -98.81129,
+      "pri": 6
+    },
+    {
+      "id": "KGKY",
+      "name": "Arlington Muni",
+      "lat": 32.65829,
+      "lon": -97.0951,
+      "pri": 6
+    },
+    {
+      "id": "KHLR",
+      "name": "Killeen/Ft Hood AAF",
+      "lat": 31.13611,
+      "lon": -97.71492,
+      "pri": 6
+    },
+    {
+      "id": "KHQZ",
+      "name": "Mesquite Metro",
+      "lat": 32.75138,
+      "lon": -96.52906,
+      "pri": 6
+    },
+    {
+      "id": "KIKG",
+      "name": "Kingsville/Kleberg Cnty",
+      "lat": 27.5464,
+      "lon": -98.02924,
+      "pri": 6
+    },
+    {
+      "id": "KILE",
+      "name": "Killeen/Skylark Fld",
+      "lat": 31.08396,
+      "lon": -97.68854,
+      "pri": 6
+    },
+    {
+      "id": "KLNC",
+      "name": "Lancaster Arpt",
+      "lat": 32.58323,
+      "lon": -96.72093,
+      "pri": 6
+    },
+    {
+      "id": "KLVJ",
+      "name": "Houston/Pearland Rgnl",
+      "lat": 29.51924,
+      "lon": -95.2423,
+      "pri": 6
+    },
+    {
+      "id": "KMDD",
+      "name": "Midland Airpark",
+      "lat": 32.03587,
+      "lon": -102.09951,
+      "pri": 6
+    },
+    {
+      "id": "KNWL",
+      "name": "Waldron Field",
+      "lat": 27.63116,
+      "lon": -97.30977,
+      "pri": 6
+    },
+    {
+      "id": "KODO",
+      "name": "Odessa/Schlemeyer Fld",
+      "lat": 31.92498,
+      "lon": -102.38741,
+      "pri": 6
+    },
+    {
+      "id": "KPWG",
+      "name": "Mc Gregor Exec",
+      "lat": 31.4891,
+      "lon": -97.3202,
+      "pri": 6
+    },
+    {
+      "id": "KRBO",
+      "name": "Robstown/Nueces Cnty",
+      "lat": 27.77807,
+      "lon": -97.68782,
+      "pri": 6
+    },
+    {
+      "id": "KRND",
+      "name": "Randolph AFB",
+      "lat": 29.537,
+      "lon": -98.268,
+      "pri": 6
+    },
+    {
+      "id": "KSEQ",
+      "name": "Seguin/Randolph AUX",
+      "lat": 29.566,
+      "lon": -97.908,
+      "pri": 6
+    },
+    {
+      "id": "KSGR",
+      "name": "Houston/Sugar Land Rgnl",
+      "lat": 29.61971,
+      "lon": -95.65748,
+      "pri": 6
+    },
+    {
+      "id": "KSPL",
+      "name": "South Padre Isl",
+      "lat": 26.072,
+      "lon": -97.163,
+      "pri": 6
+    },
+    {
+      "id": "KSSF",
+      "name": "San Antonio/Stinson Muni",
+      "lat": 29.33896,
+      "lon": -98.47198,
+      "pri": 6
+    },
+    {
+      "id": "KT35",
+      "name": "Cameron Muni",
+      "lat": 30.87892,
+      "lon": -96.97044,
+      "pri": 6
+    },
+    {
+      "id": "KT41",
+      "name": "La Porte Muni",
+      "lat": 29.67094,
+      "lon": -95.06436,
+      "pri": 6
+    },
+    {
+      "id": "KEFD",
+      "name": "Houston/Ellington Arpt",
+      "lat": 29.606,
+      "lon": -95.16,
+      "pri": 7
+    },
+    {
+      "id": "KGPM",
+      "name": "Grand Prairie Muni",
+      "lat": 32.69279,
+      "lon": -97.04846,
+      "pri": 7
+    },
+    {
+      "id": "KMCJ",
+      "name": "Houston/Rice Mem Hospital",
+      "lat": 29.7139,
+      "lon": -95.3967,
+      "pri": 7
+    },
+    {
+      "id": "KNFW",
+      "name": "Fort Worth/Carswell NAS",
+      "lat": 32.781,
+      "lon": -97.436,
+      "pri": 7
+    },
+    {
+      "id": "KRAS",
+      "name": "Port Aransas/Mustang Beach Arpt",
+      "lat": 27.80835,
+      "lon": -97.08532,
+      "pri": 7
+    },
+    {
+      "id": "K2F5",
+      "name": "Lamesa Muni",
+      "lat": 32.757,
+      "lon": -101.918,
+      "pri": 9
+    },
+    {
+      "id": "KGVX",
+      "name": "Galveston 424",
+      "lat": 28.577,
+      "lon": -94.976,
+      "pri": 9
+    },
+    {
+      "id": "KIWS",
+      "name": "Houston/West Houston Arpt",
+      "lat": 29.818,
+      "lon": -95.672,
+      "pri": 9
+    },
+    {
+      "id": "KNBE",
+      "name": "Dallas ",
+      "lat": 32.73,
+      "lon": -96.97,
+      "pri": 9
+    },
+    {
+      "id": "KP07",
+      "name": "Sanderson ",
+      "lat": 30.17,
+      "lon": -102.42,
+      "pri": 9
+    },
+    {
+      "id": "KREE",
+      "name": "Lubbock/Reese Aprk",
+      "lat": 33.595,
+      "lon": -102.042,
+      "pri": 9
+    },
+    {
+      "id": "KRPE",
+      "name": "Sabine Pass",
+      "lat": 29.7,
+      "lon": -93.95,
+      "pri": 9
+    },
+    {
+      "id": "KT65",
+      "name": "Welasco/Mid Valley Arpt",
+      "lat": 26.182,
+      "lon": -97.974,
+      "pri": 9
+    }
+  ]
+}

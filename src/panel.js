@@ -8,6 +8,7 @@
  */
 
 import { SERIES, MW_LEGEND, INK } from './config.js'
+import { WIND_INK } from './layers.js'
 import { fmt } from './stats.js'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -127,14 +128,41 @@ export function updateStats(index, year) {
   document.getElementById('stat-hub').textContent = d.medianHub == null ? '—' : fmt.one(d.medianHub)
 }
 
-export function renderLegend(mode, year) {
+/**
+ * The live-wind key, appended only when that layer is on. It is deliberately
+ * colourless: wind speed is carried by arrow length, so that the blue ramp keeps
+ * meaning installed capacity and nothing else.
+ */
+function windLegend() {
+  return `
+    <div class="legend-row legend-wind">
+      <span class="swatch swatch-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 34" width="11" height="15">
+          <path d="M12 2 L19 14 L13.6 12 L13.6 31 L10.4 31 L10.4 12 L5 14 Z"
+                fill="${WIND_INK}" stroke="rgba(13,13,13,0.85)" stroke-width="2.4"
+                stroke-linejoin="round" paint-order="stroke" />
+        </svg>
+      </span>
+      <span>Surface wind — longer means faster</span>
+    </div>
+    <div class="legend-row">
+      <span class="swatch swatch-ring" aria-hidden="true"></span>
+      <span>Calm, or direction variable</span>
+    </div>
+    <p class="legend-note">Arrows fly <b>with</b> the wind; METAR reports the direction it comes
+      <b>from</b>. Observations are hourly, so each reading carries its own age — see the
+      line under the toggle.</p>`
+}
+
+export function renderLegend(mode, year, { wind = false } = {}) {
   const box = document.getElementById('legend')
   if (mode === 'counties') {
     box.innerHTML = `
       <div class="ramp">${MW_LEGEND.map((s) => `<span class="ramp-cell" style="background:${s.color}"></span>`).join('')}</div>
       <div class="ramp-scale"><span>none</span><span>1,600+ MW</span></div>
       <p class="legend-note">Installed capacity per county through ${year}. One hue, stepped —
-        brighter means more megawatts. In 3D, tower height carries the same value.</p>`
+        brighter means more megawatts. In 3D, tower height carries the same value.</p>
+      ${wind ? windLegend() : ''}`
     return
   }
   box.innerHTML = `
@@ -147,5 +175,6 @@ export function renderLegend(mode, year) {
       <span>Already standing</span>
     </div>
     <p class="legend-note">Circle size scales with nameplate capacity (0.6–6 MW).
-      Below zoom 9 the points give way to a capacity-weighted density surface.</p>`
+      Below zoom 9 the points give way to a capacity-weighted density surface.</p>
+    ${wind ? windLegend() : ''}`
 }
