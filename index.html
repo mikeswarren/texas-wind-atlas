@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Texas Wind Atlas — 19,380 turbines, 1999–2025</title>
+  <meta name="description" content="An interactive Mapbox GL JS map of every utility-scale wind turbine in Texas, animated across the 1999–2025 build-out. Built from the USGS/LBNL U.S. Wind Turbine Database." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Texas Wind Atlas" />
+  <meta property="og:description" content="19,380 turbines · 43,973 MW · 102 counties · 1999–2025. Mapbox GL JS, USWTDB open data." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230d0d0d'/%3E%3Cpath d='M16 30V16M16 16 6 9M16 16l10-7M16 16V4' stroke='%233987e5' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23d95926'/%3E%3C/svg%3E" />
+  <!-- Runtime token override. Editable on the server with no rebuild; see README. -->
+  <script src="/config.js"></script>
+</head>
+<body>
+  <div id="app">
+    <aside id="panel" aria-label="Atlas controls and statistics">
+      <header class="panel-head">
+        <div class="brand">
+          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 30V16M16 16 6 9M16 16l10-7M16 16V4" stroke="#3987e5" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <circle cx="16" cy="16" r="2.4" fill="#d95926"/>
+          </svg>
+          <div>
+            <h1>Texas Wind Atlas</h1>
+            <p class="sub">Every utility-scale turbine in Texas, 1999–2025</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="tiles" aria-label="Statistics for the selected year">
+        <div class="tile tile-hero">
+          <span class="tile-label">Installed capacity</span>
+          <span class="tile-value" id="stat-mw">—</span>
+          <span class="tile-unit">MW by end of <span id="stat-year">2025</span></span>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Turbines standing</span>
+          <span class="tile-value" id="stat-turbines">—</span>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Counties with wind</span>
+          <span class="tile-value" id="stat-counties">—</span>
+        </div>
+        <div class="tile">
+          <span class="tile-label">Median hub height</span>
+          <span class="tile-value" id="stat-hub">—</span>
+          <span class="tile-unit">metres</span>
+        </div>
+      </section>
+
+      <section class="block" aria-label="Build-out timeline">
+        <div class="block-head">
+          <h2>Capacity added per year</h2>
+          <span class="block-note" id="timeline-note">megawatts</span>
+        </div>
+        <div id="timeline" class="timeline"></div>
+        <div class="scrubber">
+          <button id="play" class="btn-play" aria-label="Play the build-out animation">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+          </button>
+          <input id="year-range" type="range" min="1999" max="2025" step="1" value="2025"
+                 aria-label="Year" />
+          <output id="year-out" for="year-range">2025</output>
+        </div>
+      </section>
+
+      <section class="block" aria-label="Map controls">
+        <div class="control">
+          <span class="control-label">View</span>
+          <div class="segmented" id="mode-toggle" role="group">
+            <button data-mode="turbines" class="on">Turbines</button>
+            <button data-mode="counties">Counties</button>
+          </div>
+        </div>
+
+        <div class="control" data-when="turbines">
+          <span class="control-label">Turbine layer</span>
+          <div class="segmented" id="turbine-render" role="group">
+            <button data-render="density" class="on">Density</button>
+            <button data-render="points">Points</button>
+            <button data-render="clusters">Clusters</button>
+          </div>
+        </div>
+
+        <div class="control" data-when="counties">
+          <span class="control-label">County layer</span>
+          <div class="segmented" id="county-render" role="group">
+            <button data-render="flat" class="on">Flat</button>
+            <button data-render="extruded">3D capacity</button>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control-label">Basemap</span>
+          <div class="segmented" id="style-toggle" role="group">
+            <button data-style="dark" class="on">Dark</button>
+            <button data-style="satellite">Satellite</button>
+            <button data-style="outdoors">Terrain</button>
+          </div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="terrain-toggle" />
+          <span>3D terrain &amp; sky</span>
+        </label>
+      </section>
+
+      <section class="block" aria-label="Filters">
+        <div class="block-head"><h2>Filters</h2><button id="reset-filters" class="link-btn">Reset</button></div>
+        <div class="filter-row">
+          <label class="field">
+            <span>Manufacturer</span>
+            <select id="manufacturer"><option value="all">All manufacturers</option></select>
+          </label>
+          <label class="field">
+            <span>Minimum capacity <b id="cap-out">any</b></span>
+            <input id="cap-range" type="range" min="0" max="4000" step="250" value="0" />
+          </label>
+        </div>
+        <p class="filter-count" id="filter-count"></p>
+      </section>
+
+      <section class="block" aria-label="Legend">
+        <div class="block-head"><h2>Legend</h2></div>
+        <div id="legend"></div>
+      </section>
+
+      <section class="block" aria-label="Jump to a place">
+        <div class="block-head"><h2>Fly to</h2></div>
+        <div class="places" id="places"></div>
+        <p class="place-blurb" id="place-blurb"></p>
+      </section>
+
+      <footer class="panel-foot">
+        <p><b>Data:</b> U.S. Wind Turbine Database (USGS, LBNL &amp; ACP), Texas subset — public domain.
+          County boundaries: U.S. Census cartographic files.</p>
+        <p id="data-notes"></p>
+        <p><b>Built with:</b> Mapbox GL JS v3 · Vite · a Python ETL step.
+          <a href="https://github.com" id="source-link" rel="noopener">Source</a></p>
+      </footer>
+    </aside>
+
+    <main id="map-wrap">
+      <div id="map"></div>
+      <div id="map-badge" class="map-badge" hidden></div>
+      <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span> Loading 19,380 turbines…</div>
+    </main>
+  </div>
+
+  <!-- Shown instead of the map when no Mapbox token is configured. -->
+  <div id="setup" class="setup" hidden>
+    <div class="setup-card">
+      <h2>Add a Mapbox access token</h2>
+      <p>The atlas is built and ready — it just needs a token to draw the basemap.
+         Mapbox's free tier covers 50,000 map loads a month and needs no card to start.</p>
+      <ol>
+        <li>Create an account at <a href="https://account.mapbox.com/auth/signup/" target="_blank" rel="noopener">account.mapbox.com</a>.</li>
+        <li>Copy the <b>default public token</b> (it starts with <code>pk.</code>) from your account page.</li>
+        <li>Paste it below to try it right now, or set it permanently in <code>config.js</code>.</li>
+      </ol>
+      <div class="setup-try">
+        <input id="setup-token" type="text" placeholder="pk.eyJ1Ijoi…" spellcheck="false" />
+        <button id="setup-go">Load the map</button>
+      </div>
+      <p class="setup-note">Trying a token here keeps it in this browser only (localStorage) — nothing is sent anywhere but Mapbox.</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

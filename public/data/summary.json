@@ -1,0 +1,482 @@
+{
+  "generated": "see README -- rebuild with scripts/build_data.py",
+  "source": "U.S. Wind Turbine Database (USGS/LBNL/ACP), Texas subset",
+  "turbines": 19380,
+  "totalMw": 43973.0,
+  "counties": 102,
+  "projects": 277,
+  "yearMin": 1999,
+  "yearMax": 2025,
+  "imputedYears": 16,
+  "unknownYears": 84,
+  "timeline": [
+    {
+      "year": 1999,
+      "added": 46,
+      "addedMw": 35.1,
+      "cumulative": 46,
+      "cumulativeMw": 35.1,
+      "medianHubHeight": 65.0
+    },
+    {
+      "year": 2000,
+      "added": 0,
+      "addedMw": 0.0,
+      "cumulative": 46,
+      "cumulativeMw": 35.1,
+      "medianHubHeight": null
+    },
+    {
+      "year": 2001,
+      "added": 845,
+      "addedMw": 889.9,
+      "cumulative": 891,
+      "cumulativeMw": 925.0,
+      "medianHubHeight": 60.0
+    },
+    {
+      "year": 2002,
+      "added": 0,
+      "addedMw": 0.0,
+      "cumulative": 891,
+      "cumulativeMw": 925.0,
+      "medianHubHeight": null
+    },
+    {
+      "year": 2003,
+      "added": 40,
+      "addedMw": 186.4,
+      "cumulative": 931,
+      "cumulativeMw": 1111.4,
+      "medianHubHeight": 108.0
+    },
+    {
+      "year": 2004,
+      "added": 0,
+      "addedMw": 0.0,
+      "cumulative": 931,
+      "cumulativeMw": 1111.4,
+      "medianHubHeight": null
+    },
+    {
+      "year": 2005,
+      "added": 149,
+      "addedMw": 249.1,
+      "cumulative": 1080,
+      "cumulativeMw": 1360.5,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2006,
+      "added": 64,
+      "addedMw": 135.7,
+      "cumulative": 1144,
+      "cumulativeMw": 1496.2,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2007,
+      "added": 769,
+      "addedMw": 1340.6,
+      "cumulative": 1913,
+      "cumulativeMw": 2836.8,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2008,
+      "added": 1475,
+      "addedMw": 2345.0,
+      "cumulative": 3388,
+      "cumulativeMw": 5181.8,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2009,
+      "added": 1326,
+      "addedMw": 2169.0,
+      "cumulative": 4714,
+      "cumulativeMw": 7350.8,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2010,
+      "added": 353,
+      "addedMw": 681.3,
+      "cumulative": 5067,
+      "cumulativeMw": 8032.1,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2011,
+      "added": 136,
+      "addedMw": 260.9,
+      "cumulative": 5203,
+      "cumulativeMw": 8293.0,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2012,
+      "added": 918,
+      "addedMw": 1808.0,
+      "cumulative": 6121,
+      "cumulativeMw": 10101.0,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2013,
+      "added": 84,
+      "addedMw": 141.1,
+      "cumulative": 6205,
+      "cumulativeMw": 10242.1,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2014,
+      "added": 963,
+      "addedMw": 1805.2,
+      "cumulative": 7168,
+      "cumulativeMw": 12047.3,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2015,
+      "added": 1795,
+      "addedMw": 3619.4,
+      "cumulative": 8963,
+      "cumulativeMw": 15666.8,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2016,
+      "added": 1211,
+      "addedMw": 2610.9,
+      "cumulative": 10174,
+      "cumulativeMw": 18277.7,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2017,
+      "added": 1949,
+      "addedMw": 4035.9,
+      "cumulative": 12123,
+      "cumulativeMw": 22313.6,
+      "medianHubHeight": 80.0
+    },
+    {
+      "year": 2018,
+      "added": 919,
+      "addedMw": 2291.2,
+      "cumulative": 13042,
+      "cumulativeMw": 24604.8,
+      "medianHubHeight": 89.0
+    },
+    {
+      "year": 2019,
+      "added": 1496,
+      "addedMw": 3923.0,
+      "cumulative": 14538,
+      "cumulativeMw": 28527.8,
+      "medianHubHeight": 89.0
+    },
+    {
+      "year": 2020,
+      "added": 1394,
+      "addedMw": 4123.5,
+      "cumulative": 15932,
+      "cumulativeMw": 32651.3,
+      "medianHubHeight": 90.0
+    },
+    {
+      "year": 2021,
+      "added": 1065,
+      "addedMw": 3223.7,
+      "cumulative": 16997,
+      "cumulativeMw": 35875.0,
+      "medianHubHeight": 89.0
+    },
+    {
+      "year": 2022,
+      "added": 1300,
+      "addedMw": 4442.6,
+      "cumulative": 18297,
+      "cumulativeMw": 40317.5,
+      "medianHubHeight": 105.0
+    },
+    {
+      "year": 2023,
+      "added": 335,
+      "addedMw": 1131.5,
+      "cumulative": 18632,
+      "cumulativeMw": 41449.0,
+      "medianHubHeight": 114.0
+    },
+    {
+      "year": 2024,
+      "added": 410,
+      "addedMw": 1268.5,
+      "cumulative": 19042,
+      "cumulativeMw": 42717.5,
+      "medianHubHeight": 114.0
+    },
+    {
+      "year": 2025,
+      "added": 338,
+      "addedMw": 1255.5,
+      "cumulative": 19380,
+      "cumulativeMw": 43973.0,
+      "medianHubHeight": 112.0
+    }
+  ],
+  "manufacturers": [
+    {
+      "name": "GE Wind",
+      "n": 9673,
+      "mw": 20395.6
+    },
+    {
+      "name": "Vestas",
+      "n": 3784,
+      "mw": 9911.2
+    },
+    {
+      "name": "Mitsubishi",
+      "n": 1206,
+      "mw": 1661.0
+    },
+    {
+      "name": "Siemens",
+      "n": 1185,
+      "mw": 2731.5
+    },
+    {
+      "name": "Nordex",
+      "n": 1063,
+      "mw": 3901.3
+    },
+    {
+      "name": "Gamesa",
+      "n": 918,
+      "mw": 1364.1
+    },
+    {
+      "name": "Siemens Gamesa Renewable Energy",
+      "n": 917,
+      "mw": 2738.0
+    },
+    {
+      "name": "Acciona",
+      "n": 155,
+      "mw": 465.0
+    }
+  ],
+  "topCounties": [
+    {
+      "fips": "48353",
+      "name": "Nolan",
+      "n": 1400,
+      "mw": 2259.4,
+      "first": 2001,
+      "last": 2024,
+      "hh": 76.8,
+      "projects": 21
+    },
+    {
+      "fips": "48489",
+      "name": "Willacy",
+      "n": 680,
+      "mw": 1687.7,
+      "first": 2012,
+      "last": 2025,
+      "hh": 91.4,
+      "projects": 8
+    },
+    {
+      "fips": "48415",
+      "name": "Scurry",
+      "n": 685,
+      "mw": 1564.1,
+      "first": 2003,
+      "last": 2024,
+      "hh": 88.5,
+      "projects": 12
+    },
+    {
+      "fips": "48105",
+      "name": "Crockett",
+      "n": 509,
+      "mw": 1498.4,
+      "first": 2019,
+      "last": 2025,
+      "hh": 92.9,
+      "projects": 6
+    },
+    {
+      "fips": "48431",
+      "name": "Sterling",
+      "n": 632,
+      "mw": 1097.5,
+      "first": 2006,
+      "last": 2022,
+      "hh": 81.4,
+      "projects": 8
+    },
+    {
+      "fips": "48261",
+      "name": "Kenedy",
+      "n": 454,
+      "mw": 1082.0,
+      "first": 2009,
+      "last": 2021,
+      "hh": 83.3,
+      "projects": 6
+    },
+    {
+      "fips": "48173",
+      "name": "Glasscock",
+      "n": 469,
+      "mw": 1070.5,
+      "first": 2007,
+      "last": 2022,
+      "hh": 86.9,
+      "projects": 8
+    },
+    {
+      "fips": "48065",
+      "name": "Carson",
+      "n": 611,
+      "mw": 1068.0,
+      "first": 2001,
+      "last": 2016,
+      "hh": 78.6,
+      "projects": 9
+    },
+    {
+      "fips": "48427",
+      "name": "Starr",
+      "n": 419,
+      "mw": 1066.6,
+      "first": 2015,
+      "last": 2020,
+      "hh": 98.8,
+      "projects": 8
+    },
+    {
+      "fips": "48195",
+      "name": "Hansford",
+      "n": 432,
+      "mw": 1052.8,
+      "first": 2003,
+      "last": 2022,
+      "hh": 85.8,
+      "projects": 9
+    },
+    {
+      "fips": "48153",
+      "name": "Floyd",
+      "n": 441,
+      "mw": 1018.3,
+      "first": 2007,
+      "last": 2017,
+      "hh": 82.4,
+      "projects": 7
+    },
+    {
+      "fips": "48275",
+      "name": "Knox",
+      "n": 276,
+      "mw": 983.5,
+      "first": 2015,
+      "last": 2022,
+      "hh": 99.2,
+      "projects": 5
+    }
+  ],
+  "topProjects": [
+    {
+      "name": "Aviator Wind",
+      "n": 191,
+      "mw": 525.0,
+      "year": 2020,
+      "county": "Coke"
+    },
+    {
+      "name": "White Mesa",
+      "n": 180,
+      "mw": 507.6,
+      "year": 2021,
+      "county": "Crockett"
+    },
+    {
+      "name": "Young Wind Project",
+      "n": 177,
+      "mw": 499.1,
+      "year": 2022,
+      "county": "Young"
+    },
+    {
+      "name": "Maverick Creek",
+      "n": 126,
+      "mw": 488.3,
+      "year": 2020,
+      "county": "Concho"
+    },
+    {
+      "name": "Hale Wind",
+      "n": 239,
+      "mw": 478.0,
+      "year": 2019,
+      "county": "Hale"
+    },
+    {
+      "name": "High Lonesome",
+      "n": 142,
+      "mw": 449.9,
+      "year": 2019,
+      "county": "Crockett"
+    },
+    {
+      "name": "Mesquite Star",
+      "n": 118,
+      "mw": 418.9,
+      "year": 2020,
+      "county": "Fisher"
+    },
+    {
+      "name": "King Creek 1",
+      "n": 96,
+      "mw": 396.6,
+      "year": 2022,
+      "county": "Throckmorton"
+    },
+    {
+      "name": "Capricorn Ridge",
+      "n": 210,
+      "mw": 367.0,
+      "year": 2017,
+      "county": "Sterling"
+    },
+    {
+      "name": "Western Trail",
+      "n": 130,
+      "mw": 366.6,
+      "year": 2021,
+      "county": "Baylor"
+    }
+  ],
+  "records": {
+    "tallest": {
+      "project": "Ranchland Wind Project",
+      "county": "Callahan",
+      "tipHeight": 200.0,
+      "hubHeight": 119.0,
+      "year": 2022
+    },
+    "largest": {
+      "project": "Ranchland Wind Project",
+      "county": "Callahan",
+      "capacityKw": 6000,
+      "model": "V162-6.0",
+      "year": 2022
+    }
+  }
+}

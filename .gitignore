@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Cached USWTDB API pages -- rebuild with `npm run data`
+scripts/.cache/

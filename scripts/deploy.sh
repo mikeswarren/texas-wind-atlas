@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Build and publish the Texas Wind Atlas to /srv/sites/map.hitky.com.
+#
+#   ./scripts/deploy.sh
+#
+# Preserves the live config.js (which holds the Mapbox token) rather than
+# overwriting it with the repo's empty placeholder -- so a deploy never
+# silently takes the map down.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SITE=/srv/sites/map.hitky.com
+
+cd "$ROOT"
+
+# Match the assignment, not the word "pk." -- the placeholder config.js
+# mentions it in a comment, which made an earlier version of this check
+# claim it was preserving a token that was never there.
+has_token() {
+  [ -f "$1" ] && grep -Eq "MAPBOX_TOKEN[[:space:]]*=[[:space:]]*['\"]pk\." "$1"
+}
+
+echo "==> Validating style specs"
+npm run --silent validate
+
+echo "==> Building"
+npm run --silent build
+
+echo "==> Pre-compressing data files"
+# Caddy is configured with `precompressed gzip`; a .gz next to each file means
+# the edge serves 182 KB from disk instead of gzipping 4.2 MB per cold request.
+find dist/data -type f \( -name '*.json' -o -name '*.geojson' \) -print0 |
+  while IFS= read -r -d '' f; do
+    gzip -9 -k -f "$f"
+  done
+
+mkdir -p "$SITE"
+
+# Keep whatever token the live site is already using.
+LIVE_CONFIG=""
+if has_token "$SITE/config.js"; then
+  LIVE_CONFIG="$(cat "$SITE/config.js")"
+  echo "==> Preserving the existing Mapbox token in config.js"
+fi
+
+echo "==> Publishing to $SITE"
+rsync -a --delete dist/ "$SITE/"
+
+if [ -n "$LIVE_CONFIG" ]; then
+  printf '%s\n' "$LIVE_CONFIG" > "$SITE/config.js"
+fi
+
+echo
+echo "Deployed. $(find "$SITE" -type f | wc -l) files, $(du -sh "$SITE" | cut -f1) on disk."
+if ! has_token "$SITE/config.js"; then
+  echo
+  echo "NOTE: no Mapbox token is set. The site will show its setup screen until"
+  echo "      you put one in $SITE/config.js:"
+  echo "        window.MAPBOX_TOKEN = 'pk....'"
+  echo "      No rebuild needed -- that file is served uncached."
+fi
