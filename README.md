@@ -22,7 +22,7 @@ Each of these is a distinct Mapbox GL technique, not a restatement of the same o
 | Camera control | `flyTo` presets with per-place pitch and bearing |
 | Style switching | Dark / satellite / terrain basemaps, with full layer re-installation |
 | Popups & hover | Turbine detail popups, county hover via feature-state |
-| Live data + collision | METAR wind arrows, rotated per feature, thinned by `symbol-sort-key` |
+| Live data overlay | METAR wind arrows, `icon-rotate` per feature, polled and re-sourced in place |
 
 The time scrubber animates the build-out from 1999 to 2025. Turbines
 commissioned in the selected year are highlighted, so pressing play shows
@@ -101,11 +101,14 @@ Three decisions are load-bearing:
   `icon-rotate`, which would draw a confident *north* wind at exactly the
   stations that reported no direction at all. `scripts/test_wx.mjs` pins all four
   shapes.
-- **Decluttering is collision detection, not a zoom filter.** `zoom` is illegal
-  inside a filter expression, so thinning 215 stations uses
-  `icon-allow-overlap: false` with `symbol-sort-key` set to the station's NOAA
-  priority (0 = major hub). Statewide you get the hubs; zooming in fills in the
-  small fields continuously, with no pop at a breakpoint.
+- **Every station draws, at every zoom.** `icon-allow-overlap` and
+  `icon-ignore-placement` are both on, so Mapbox's collision detection never
+  hides an arrow. Letting it thin them looked tidier at statewide zoom but was
+  the wrong picture: arrows appeared as you zoomed in, so the field seemed to
+  gain stations when only the camera had moved. A wind field is read as a whole.
+  There are ~183 of them and Texas has room. `symbol-sort-key` still carries the
+  station's NOAA priority, but now only to decide which arrow draws on top where
+  two overlap.
 
 Arrows fly **with** the wind. METAR reports the direction it comes **from**, so
 the icon is rotated a further 180° — the two readings are exact opposites, and

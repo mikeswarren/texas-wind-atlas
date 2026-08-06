@@ -374,13 +374,19 @@ export function layerSpecs({ year, filter }) {
         'icon-rotation-alignment': 'map',
         'icon-size': windArrowSizeExpr(),
         'icon-anchor': 'center',
-        // Decluttering is Mapbox's collision detection, not a zoom filter:
-        // `zoom` is illegal inside a filter expression, and sort-key thinning
-        // adapts continuously instead of popping at a breakpoint. Lower `pri`
-        // (0 = major hub) wins the collision, so statewide zoom keeps the hubs
-        // and fills in the small fields as you go in.
-        'icon-allow-overlap': false,
-        'icon-ignore-placement': false,
+        // Every station, at every zoom. Collision detection would hide the
+        // arrows that lose a placement contest and reveal them on zoom, which
+        // makes the field look like it is gaining stations when only the camera
+        // moved -- and a wind field is read as a whole, so a partial one is the
+        // wrong picture rather than a tidier one. There are ~183 of them; Texas
+        // has room.
+        'icon-allow-overlap': true,
+        // Also true, or these arrows would still suppress the basemap's place
+        // labels even while overlapping each other freely.
+        'icon-ignore-placement': true,
+        // No longer a thinning mechanism, since nothing is thinned. It still
+        // sets draw order, so a major hub's arrow lands on top of a small
+        // field's where the two overlap.
         'symbol-sort-key': ['get', 'pri'],
       },
       paint: {

@@ -204,8 +204,9 @@ def build_stations(refresh: bool) -> dict:
     the current cycle contains a station whose name ends `, TX, TW`, a Taiwanese
     site whose city abbreviates the same way.
 
-    `priority` (0 = major hub, 9 = minor field) is carried through so the map can
-    thin 215 stations down to the ~34 majors when zoomed out.
+    `priority` (0 = major hub, 9 = minor field) is carried through for draw
+    order: every station is drawn at every zoom, so priority only decides which
+    arrow lands on top where two overlap.
     """
     raw = json.loads(fetch(f"{STATIONINFO}?bbox={TX_BBOX}&format=json", "tx_stations.json", refresh))
 
