@@ -99,7 +99,7 @@ both rankings, the size distribution, and the technology curves all move togethe
 and the header states the slice in one sentence.
 
 | Card | Form | Why that form |
-|---|---|---|
+| --- | --- | --- |
 | Cumulative installed capacity | area, one series | a stock over time; the per-year *flow* is its own chart in the sidebar, because putting both on shared axes would need two y-scales |
 | Capacity by manufacturer | ranked bars, top 7 | click a bar to set the global manufacturer filter (click it again to clear) |
 | Capacity by county | ranked bars, top 10 | click a row to zoom the map to that county |
@@ -172,6 +172,44 @@ The site is a static build behind the shared edge Caddy on this server
 `precompressed gzip`, so the 4.2 MB turbine feed goes over the wire as 182 KB
 without re-gzipping on every cold request. The deploy also preserves whatever
 token is already live in `config.js`, so publishing never takes the map down.
+
+### Autodeploy
+
+A push to `main` reaches the live site on its own, within about three minutes.
+It is **pull-based** — nothing at GitHub can reach this server, and no deploy key
+or SSH secret exists anywhere off the box:
+
+```
+map-autodeploy.timer   every 3 min
+  └─ map-autodeploy.service  (User=ubuntu, Type=oneshot)
+       └─ /usr/local/bin/map-autodeploy      <- installed copy of scripts/autodeploy.sh
+            ├─ git fetch; HEAD == origin/main ? exit
+            ├─ git reset --hard origin/main
+            ├─ npm ci                        <- only if package{,-lock}.json moved
+            └─ ./scripts/deploy.sh           <- validate, build, publish
+```
+
+It deploys from its own clone at `/srv/build/texas-wind-atlas`, never from a
+developer's working copy, so an in-progress edit can neither be clobbered nor
+accidentally shipped. Every deploy is therefore reproducible from a clean tree.
+
+```bash
+sudo journalctl -u map-autodeploy -n 40        # what it did, and when
+systemctl list-timers map-autodeploy.timer     # when it next runs
+sudo systemctl start map-autodeploy.service    # deploy now, don't wait
+```
+
+`scripts/autodeploy.sh` is the canonical source but systemd runs the **installed
+copy**, because the script's own `git reset --hard` would otherwise be able to
+rewrite the bytes bash had not yet read. After editing it:
+
+```bash
+sudo install -m 755 scripts/autodeploy.sh /usr/local/bin/map-autodeploy
+```
+
+Because `deploy.sh` validates the style specs and builds before it publishes, a
+push that breaks either one fails inside the timer and leaves the previous build
+serving — the failure shows up in `journalctl`, not on the site.
 
 **DNS:** `map.hitky.com` must point at this server. hitky.com is
 Cloudflare-proxied, and a brand-new orange-clouded hostname dead-locks its
