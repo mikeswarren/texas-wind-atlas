@@ -126,6 +126,11 @@ export function updateStats(index, year) {
   document.getElementById('stat-turbines').textContent = fmt.int(d.cumulative)
   document.getElementById('stat-counties').textContent = fmt.int(d.counties)
   document.getElementById('stat-hub').textContent = d.medianHub == null ? '—' : fmt.one(d.medianHub)
+  // Distinct project names standing by this year. Counted at each project's
+  // first qualifying year in buildIndex, so it follows the manufacturer and
+  // capacity filters like every other number on the page -- filter to Vestas
+  // and this becomes "Vestas projects", not the statewide total.
+  document.getElementById('stat-projects').textContent = fmt.int(d.projects)
 }
 
 /**
