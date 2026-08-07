@@ -36,9 +36,39 @@ export function countyColorExpr() {
   ]
 }
 
-/** Extruded "capacity towers" -- height in metres, tuned to Texas county size. */
+/**
+ * Extruded "capacity towers" -- height in metres, driven by feature-state MW.
+ *
+ * The height has to be zoom-dependent, which is the whole trick here. Extrusion
+ * heights are ground units, so a single fixed metre value cannot read at more
+ * than one scale: the old flat 60,000 m peak was a respectable 229 px tall at
+ * zoom 9 and a barely-visible 13 px at the statewide zoom the map now opens on,
+ * because a pixel there is ~4.5 km. That is what made the 3D look shallow --
+ * not the camera angle.
+ *
+ * So the peak of the MW ramp is itself interpolated over zoom, which keeps the
+ * tallest county at roughly 100-230 px however far out you are. Same idea the
+ * turbine circles already use, one dimension over.
+ *
+ * Note the shape: `zoom` is the input of the OUTER interpolate and each stop
+ * output is a feature-state ramp. That order is not stylistic -- the style spec
+ * only permits a zoom expression at the top level of an interpolate or step,
+ * and nesting it deeper makes Mapbox drop the property with a console warning
+ * and nothing else. `npm run validate` catches it if this is ever inverted.
+ */
 export function countyHeightExpr() {
-  return ['interpolate', ['linear'], ['coalesce', ['feature-state', 'mw'], 0], 0, 0, 2300, 60000]
+  const ramp = (peak) => [
+    'interpolate', ['linear'], ['coalesce', ['feature-state', 'mw'], 0],
+    0, 0,
+    2300, peak,
+  ]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    4, ramp(600000),
+    6, ramp(260000),
+    9, ramp(60000),
+    13, ramp(14000),
+  ]
 }
 
 /**
