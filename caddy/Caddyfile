@@ -49,7 +49,17 @@
 	@build path /build.json
 	header @build Cache-Control "no-store"
 
-	header /index.html Cache-Control no-cache
+	# The page itself must always be revalidated: it names the hashed asset
+	# filenames, so a stale copy pins the browser to an old build no matter how
+	# many times the app is redeployed.
+	#
+	# `/` has to be listed explicitly. This matcher tests the REQUEST path, and a
+	# visitor asks for `/` -- it only becomes `/index.html` later, inside
+	# try_files. Matching just /index.html therefore left the one URL everybody
+	# actually loads with no Cache-Control at all, and browsers fall back to
+	# heuristic caching on last-modified when the header is absent.
+	@html path / /index.html
+	header @html Cache-Control "no-cache"
 
 	handle {
 		try_files {path} /index.html
