@@ -11,8 +11,9 @@ name: texas-wind-atlas
 #   npm run build && docker compose up -d   ->  http://127.0.0.1:8089
 #
 # On this server the site root is the published directory instead, and the
-# container joins the shared `edge` network via a git-ignored
-# docker-compose.override.yml. See README -> Deployment.
+# container joins this stack's own `windatlas_edge` network via a git-ignored
+# docker-compose.override.yml, which also pins container_name so the edge can
+# address it by full name. See README -> Deployment.
 
 services:
   caddy:

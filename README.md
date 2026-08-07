@@ -272,15 +272,31 @@ included.
 
 ### On this server
 
-The shared edge Caddy terminates TLS for `map.hitky.com` and reverse-proxies to
-this container over the external `edge` network (see
+The edge Caddy terminates TLS for `map.hitky.com` and reverse-proxies to this
+container over the external `windatlas_edge` network — one network per project,
+and the edge is the only container ever on more than one of them (see
 `~/claude/caddy-sites/README.md`). Two server-local pieces, both git-ignored or
 outside the repo:
 
-- `docker-compose.override.yml` — joins the `edge` network and points the site
-  root at `/srv/sites/map.hitky.com` instead of `./dist`
-- `~/claude/caddy-sites/map.caddy` — three lines, `reverse_proxy
-  texas-wind-atlas-caddy-1:8080`, and it should never need to change again
+- `docker-compose.override.yml` — pins `container_name: texas-wind-atlas-caddy`
+  (the edge addresses it by full name), joins `windatlas_edge`, and **restates
+  the `volumes:` entry** so the site root is `/srv/sites/map.hitky.com` instead
+  of `./dist`. It cannot do that by setting `SITE_ROOT`: that is a Compose
+  interpolation variable, resolved from the shell or a `.env` file in this
+  directory before any override is merged.
+- `~/claude/caddy-sites/map.caddy` — two lines, `reverse_proxy
+  texas-wind-atlas-caddy:8080`, and it should never need to change again.
+  **Not** `texas-wind-atlas-caddy-1` — that is the name Compose derives from the
+  directory, which is exactly what pinning `container_name` above replaces.
+
+Creating `windatlas_edge` is a one-time step, and the network must also be
+listed in `~/claude/edge/docker-compose.yml` in **both** the `proxy` service and
+the top-level `networks:` block — then `docker compose up -d` that stack, because
+a reload alone will not join the edge to a new network:
+
+```bash
+docker network create windatlas_edge
+```
 
 Publishing is `./scripts/deploy.sh`. It rsyncs into the published directory that
 the container bind-mounts read-only, so a deploy is a **file swap under a running
