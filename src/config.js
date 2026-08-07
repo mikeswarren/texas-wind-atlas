@@ -93,9 +93,13 @@ export const PLACES = [
     // a zoom floor that grows with the window, and a preset below the floor is
     // not an error -- Mapbox just overrides it, so the change looks like it did
     // nothing. At the current 40deg box the floor is ~4.9 on a 1080p window.
+    // Pitched, because the county layer now lands in its 3D capacity rendering
+    // and an extrusion viewed straight down is just a choropleth with a shadow.
+    // 45 is the shallowest angle that reads the towers as heights; steeper puts
+    // the far half of the state on the horizon at this zoom.
     label: 'Statewide',
     blurb: 'All 19,380 turbines across 102 counties.',
-    camera: { center: [-99.6, 31.3], zoom: 4.9, pitch: 0, bearing: 0 },
+    camera: { center: [-99.6, 31.3], zoom: 4.9, pitch: 45, bearing: 0 },
   },
   {
     id: 'nolan',

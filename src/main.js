@@ -32,9 +32,9 @@ const state = {
   // Independent layer toggles, not an exclusive view mode. Turbines over the
   // county choropleth is a legitimate thing to want to look at, and the old
   // Turbines|Counties switch made it unreachable.
-  layers: { turbines: true, counties: false, boundary: true },
-  turbineRender: 'density', // density | points | clusters
-  countyRender: 'flat',     // flat | extruded
+  layers: { turbines: true, counties: true, boundary: true },
+  turbineRender: 'density',  // density | points | clusters
+  countyRender: 'extruded',  // flat | extruded
   styleKey: 'dark',
   terrain: false,
   manufacturer: 'all',
@@ -109,13 +109,13 @@ async function loadData() {
     // afterwards it would add a serial round trip before the first paint.
     get('texas.geojson').catch(() => null),
   ])
-  // counties.geojson is NOT fetched here. The authoritative Texas county
-  // boundaries are 182 KB gzipped -- as much as all 19,380 turbines -- and the
-  // county layer starts switched off, so loading it at boot would charge every
-  // visitor for a layer most never turn on. ensureCounties() pulls it the first
-  // time the layer is enabled. Nothing else needs it: the dashboard's county
-  // rankings are built from the turbine records' own county fields, not from
-  // this file.
+  // counties.geojson is NOT in this batch. The authoritative Texas county
+  // boundaries are 184 KB gzipped -- as much as all 19,380 turbines -- and this
+  // batch is what stands between a visitor and a drawn map. The county layer
+  // ships on, so they are fetched immediately after (see boot), but off the
+  // critical path: the map paints, then the choropleth arrives. Nothing else
+  // needs the file -- the analytics county rankings come from the turbine
+  // records' own county fields.
   // The station roster is optional on purpose. It only feeds the live wind
   // overlay, so a missing or unreadable stations.json costs that one control --
   // it must never stop 19,380 turbines from drawing.
@@ -129,12 +129,17 @@ async function loadData() {
 }
 
 /**
- * Fetch the county boundaries the first time the layer is switched on, then
- * feed the already-installed (empty) source and paint the year into it.
+ * Fetch the county boundaries, then feed the already-installed (empty) source
+ * and paint the year into it. Called at boot because the layer ships on, and
+ * again from the toggle for anyone who switches it off and back on.
  *
  * Idempotent and safe to call concurrently: the in-flight promise is cached, so
- * toggling the layer twice quickly issues one request. A failure leaves
- * data.counties null and is retried on the next toggle rather than latched.
+ * two calls issue one request. A failure leaves data.counties null and is
+ * retried on the next toggle rather than latched.
+ *
+ * Two arrival orders, both handled: if the style is already up the source
+ * exists and is fed directly; if it is not, install() picks data.counties up
+ * when style.load fires. Whichever wins, the polygons get their geometry.
  */
 let countiesPending = null
 function ensureCounties() {
@@ -894,6 +899,11 @@ async function boot() {
   wireControls()
   wirePlaces()
   applyFilters()
+
+  // The county layer ships on, so its boundaries are wanted straight away --
+  // but deliberately started here rather than in loadData's batch, so 184 KB of
+  // polygons never stands between the visitor and a drawn map.
+  if (state.layers.counties) ensureCounties()
 }
 
 // Map event handlers bind to layer ids, which survive a style swap, so they
