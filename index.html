@@ -14,21 +14,28 @@
   <script src="/config.js"></script>
 </head>
 <body>
+  <!-- Site header. The app below it is full-bleed panes, so without this bar the
+       map canvas would run straight into the browser chrome with nothing to
+       anchor it as a page. -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 30V16M16 16 6 9M16 16l10-7M16 16V4" stroke="#3987e5" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="2.4" fill="#d95926"/>
+      </svg>
+      <div class="brand-text">
+        <h1>Texas Wind Atlas</h1>
+        <p class="sub">Every utility-scale turbine in Texas, 1999–2025</p>
+      </div>
+    </div>
+    <nav class="topnav" aria-label="Site">
+      <a href="https://energy.usgs.gov/uswtdb/" rel="noopener">USWTDB data</a>
+      <a href="https://hitky.com/" rel="noopener">hitky.com</a>
+    </nav>
+  </header>
+
   <div id="app">
     <aside id="panel" aria-label="Atlas controls and statistics">
-      <header class="panel-head">
-        <div class="brand">
-          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
-            <path d="M16 30V16M16 16 6 9M16 16l10-7M16 16V4" stroke="#3987e5" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-            <circle cx="16" cy="16" r="2.4" fill="#d95926"/>
-          </svg>
-          <div>
-            <h1>Texas Wind Atlas</h1>
-            <p class="sub">Every utility-scale turbine in Texas, 1999–2025</p>
-          </div>
-        </div>
-      </header>
-
       <section class="tiles" aria-label="Statistics for the selected year">
         <div class="tile tile-hero">
           <span class="tile-label">Installed capacity</span>

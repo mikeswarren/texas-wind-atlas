@@ -18,6 +18,8 @@
   --dash-h: 57vh;
   --split: 8px;
   --radius: 10px;
+  /* Gutter between the framed map and everything around it. */
+  --mat: 12px;
   color-scheme: dark;
 }
 
@@ -33,12 +35,42 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Header band, then the app. The app row is minmax(0, 1fr) so its own inner
+   grids can still shrink -- an `auto` minimum here would let the panes push the
+   page taller than the viewport and produce a document scrollbar. */
+body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
 a { color: var(--series-1); }
+
+/* ---------- site header ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 16px;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  z-index: 8;
+}
+
+.brand { display: flex; gap: 11px; align-items: center; min-width: 0; }
+.brand .mark { width: 28px; height: 28px; flex: none; }
+.brand-text { min-width: 0; }
+
+.topnav { display: flex; align-items: center; gap: 16px; flex: none; font-size: 12px; }
+.topnav a { color: var(--text-secondary); text-decoration: none; white-space: nowrap; }
+.topnav a:hover { color: var(--text-primary); text-decoration: underline; }
 
 #app {
   display: grid;
   grid-template-columns: var(--panel-w) var(--split) 1fr;
-  height: 100%;
+  min-height: 0;
 }
 
 /* ---------- splitters ---------- */
@@ -85,18 +117,7 @@ body.resizing-col, body.resizing-row { user-select: none; }
 #panel::-webkit-scrollbar { width: 10px; }
 #panel::-webkit-scrollbar-thumb { background: #33332f; border-radius: 6px; }
 
-.panel-head {
-  padding: 18px 18px 14px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  background: var(--surface-1);
-  z-index: 3;
-}
-
-.brand { display: flex; gap: 11px; align-items: flex-start; }
-.brand .mark { width: 30px; height: 30px; flex: none; margin-top: 1px; }
-
+/* h1/.sub live in the site header now, not in the sidebar. */
 h1 {
   margin: 0;
   font-size: 17px;
@@ -105,10 +126,13 @@ h1 {
 }
 
 .sub {
-  margin: 3px 0 0;
+  margin: 2px 0 0;
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .block { padding: 16px 18px; border-bottom: 1px solid var(--border); }
@@ -421,8 +445,21 @@ select {
   grid-template-rows: minmax(0, 1fr) var(--split) var(--dash-h);
   min-height: 0;
 }
-#map-stage { position: relative; min-height: 0; }
-#map { position: absolute; inset: 0; }
+/* The map is the only pane made of imagery rather than a filled surface, so it
+   is the one that reads as "bleeding" when it touches the window edge. Sitting
+   it on a mat with a hairline frame gives it an edge of its own. */
+#map-stage {
+  position: relative;
+  min-height: 0;
+  margin: var(--mat);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--plane);
+}
+/* The radius alone rounds the canvas: mapbox-gl.css already puts
+   `overflow: hidden` on .mapboxgl-map, and Popup flips its anchor to stay inside
+   that box, so nothing needs clipping by hand. */
+#map { position: absolute; inset: 0; border-radius: inherit; }
 
 .map-badge {
   position: absolute;
@@ -454,6 +491,7 @@ select {
   color: var(--text-secondary);
   z-index: 4;
   font-size: 13px;
+  border-radius: var(--radius);
   transition: opacity 0.4s;
 }
 .loading.done { opacity: 0; pointer-events: none; }
@@ -733,11 +771,21 @@ select {
   .split-v { display: none; }
   #panel { order: 2; border-top: 1px solid var(--border); }
   #map-wrap { order: 1; }
-  .panel-head { position: static; }
-  /* On a phone the analytics are the view, not a strip under the map -- but the
-     horizontal splitter still works, so this is only the starting point. */
-  :root { --dash-h: 62vh; }
+  /* A narrow window has no room to spend on a mat, and the strapline is the
+     first thing that can go before the title starts truncating.
+     On a phone the analytics are the view, not a strip under the map -- but the
+     horizontal splitter still works, so --dash-h is only the starting point. */
+  :root { --mat: 8px; --dash-h: 62vh; }
+  .topbar { padding: 9px 12px; gap: 12px; }
+  .topbar .sub { display: none; }
+  .topnav { gap: 12px; }
   .dash-grid { grid-template-columns: 1fr; }
+}
+
+/* Below this the two nav links and the title compete for the same row; the data
+   credit also appears in full in the sidebar footer, so it is the one to drop. */
+@media (max-width: 560px) {
+  .topnav a[href*='uswtdb'] { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,6 +10,8 @@ const out = []
 const say = (...a) => out.push(a.join(' '))
 let checks = 0
 const WIN = { w: 1680, h: 1050 }
+const HEADER = 50 // the site header band, outside both resizable panes
+const DASH_MAX = WIN.h - 190 - HEADER
 const panes = { panel: { width: 372 }, dash: { height: Math.round(WIN.h * 0.57) } }
 
 const inline = new Map()
@@ -42,7 +44,10 @@ globalThis.document = {
     if (id === 'map-wrap') return { getBoundingClientRect: () => ({ bottom: WIN.h }) }
     return null
   },
-  querySelector: (sel) => (sel.includes('panel') ? handles.panel : handles.dash),
+  querySelector: (sel) => {
+    if (sel === '.topbar') return { getBoundingClientRect: () => ({ height: HEADER }) }
+    return sel.includes('panel') ? handles.panel : handles.dash
+  },
   body: { classList: { add() {}, remove() {} } },
 }
 const store = new Map()
@@ -73,7 +78,7 @@ check('--panel-w override', inline.get('--panel-w') || '(none)', '(none)')
 check('--dash-h override', inline.get('--dash-h') || '(none)', '(none)')
 check('panel aria-valuenow', handles.panel.attrs['aria-valuenow'], '372')
 check('dash aria-valuenow', handles.dash.attrs['aria-valuenow'], '599')
-check('dash aria-valuemax', handles.dash.attrs['aria-valuemax'], '860') // h - 190
+check('dash aria-valuemax', handles.dash.attrs['aria-valuemax'], String(DASH_MAX)) // h - 190 - header
 check('onResize not called at boot', onResizeCalls, 0)
 
 say('\n2. ArrowUp on the analytics splitter -- from 599px, not from "57vh"')
@@ -91,7 +96,7 @@ panes.dash.height = 567
 listeners['dash:keydown']({ key: 'Home', shiftKey: false, preventDefault() {} })
 check('Home -> floor', inline.get('--dash-h'), '56px')
 listeners['dash:keydown']({ key: 'End', shiftKey: false, preventDefault() {} })
-check('End -> ceiling', inline.get('--dash-h'), '860px')
+check('End -> ceiling', inline.get('--dash-h'), `${DASH_MAX}px`)
 
 say('\n5. drag the sidebar: pointer at x=520 -> 520px wide')
 listeners['panel:pointerdown']({ button: 0, pointerId: 1, preventDefault() {} })

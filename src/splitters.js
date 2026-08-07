@@ -30,6 +30,12 @@
 
 const STORE_KEY = 'twa:layout'
 
+/** Height of the site header band, which is outside both resizable panes. */
+function headerHeight() {
+  const el = document.querySelector('.topbar')
+  return el ? el.getBoundingClientRect().height : 0
+}
+
 const AXES = {
   panel: {
     prop: '--panel-w',
@@ -44,7 +50,10 @@ const AXES = {
   dash: {
     prop: '--dash-h',
     min: 56,
-    max: () => Math.max(120, window.innerHeight - 190),
+    // The 190px reserve keeps a usable strip of map above the divider. The site
+    // header sits outside the panes, so its band has to come off the viewport
+    // first or that reserve is spent on chrome instead of map.
+    max: () => Math.max(120, window.innerHeight - 190 - headerHeight()),
     current: () => document.getElementById('dash').getBoundingClientRect().height,
     /** Pointer position -> desired analytics height. */
     measure: (e) => document.getElementById('map-wrap').getBoundingClientRect().bottom - e.clientY,
