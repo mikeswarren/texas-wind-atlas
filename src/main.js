@@ -29,7 +29,10 @@ const state = {
   year: 2025,
   yearMin: 1999,
   yearMax: 2025,
-  mode: 'turbines',        // turbines | counties
+  // Independent layer toggles, not an exclusive view mode. Turbines over the
+  // county choropleth is a legitimate thing to want to look at, and the old
+  // Turbines|Counties switch made it unreachable.
+  layers: { turbines: true, counties: false, boundary: true },
   turbineRender: 'density', // density | points | clusters
   countyRender: 'flat',     // flat | extruded
   styleKey: 'dark',
@@ -133,27 +136,34 @@ function install() {
   installTerrain(map, state.terrain)
 }
 
-/** Layer visibility for the current mode -- one place, so nothing goes stale. */
+/**
+ * Layer visibility, in one place so nothing goes stale.
+ *
+ * Every entry is `layer is on AND this is the rendering it asked for`. The
+ * turbine and county groups no longer exclude each other -- each reads its own
+ * toggle, so any combination the layer list can express actually draws.
+ */
 function syncVisibility() {
-  const turbines = state.mode === 'turbines'
+  const L = state.layers
   const vis = {
-    'turbine-heat': turbines && state.turbineRender === 'density',
-    'turbine-point': turbines && state.turbineRender !== 'clusters',
-    'cluster-circle': turbines && state.turbineRender === 'clusters',
-    'cluster-count': turbines && state.turbineRender === 'clusters',
-    'cluster-point': turbines && state.turbineRender === 'clusters',
-    'county-fill': !turbines && state.countyRender === 'flat',
-    'county-3d': !turbines && state.countyRender === 'extruded',
-    'county-line': !turbines,
-    // Wind is orthogonal to the turbines/counties split -- it describes right
-    // now rather than a selected year, so it overlays either mode.
+    'turbine-heat': L.turbines && state.turbineRender === 'density',
+    'turbine-point': L.turbines && state.turbineRender !== 'clusters',
+    'cluster-circle': L.turbines && state.turbineRender === 'clusters',
+    'cluster-count': L.turbines && state.turbineRender === 'clusters',
+    'cluster-point': L.turbines && state.turbineRender === 'clusters',
+    'county-fill': L.counties && state.countyRender === 'flat',
+    'county-3d': L.counties && state.countyRender === 'extruded',
+    'county-line': L.counties,
+    'state-line': L.boundary,
+    // Wind describes right now rather than a selected year, so it overlays
+    // whatever else is on.
     'metar-wind': state.wind,
     'metar-calm': state.wind,
   }
   for (const [id, on] of Object.entries(vis)) {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
   }
-  if (turbines && state.turbineRender === 'clusters' && clusterDirty) refreshClusters()
+  if (L.turbines && state.turbineRender === 'clusters' && clusterDirty) refreshClusters()
 }
 
 /**
@@ -218,7 +228,7 @@ function applyYear({ repaintCounties = true } = {}) {
     setHighlightYear(map, state.year)
 
     clusterDirty = true
-    if (state.mode === 'turbines' && state.turbineRender === 'clusters') refreshClusters()
+    if (state.layers.turbines && state.turbineRender === 'clusters') refreshClusters()
     if (repaintCounties) paintCounties()
   }
 
@@ -226,7 +236,7 @@ function applyYear({ repaintCounties = true } = {}) {
   document.getElementById('year-range').value = state.year
   updateStats(index, state.year)
   timeline.update(index, state.year)
-  renderLegend(state.mode, state.year, { wind: state.wind })
+  renderLegend(state, state.year)
   // The dashboard reads the same index at the same year, so it can never
   // disagree with the map or the tiles.
   if (dashboard) dashboard.update(index, state.year, state)
@@ -475,9 +485,10 @@ function segmented(id, key, after) {
   })
 }
 
+/** A layer's rendering sub-control is only meaningful while that layer is on. */
 function syncConditionalControls() {
   for (const node of document.querySelectorAll('[data-when]')) {
-    node.hidden = node.dataset.when !== state.mode
+    node.hidden = !state.layers[node.dataset.when]
   }
 }
 
@@ -499,24 +510,32 @@ function play() {
   }, 620)
 }
 
+/** The 3D choropleth is unreadable straight down; give it a camera to live in. */
+function pitchForExtrusion() {
+  if (state.layers.counties && state.countyRender === 'extruded' && map.getPitch() < 20) {
+    map.easeTo({ pitch: 50, duration: 800 })
+  }
+}
+
 function wireControls() {
-  segmented('mode-toggle', 'mode', () => {
-    syncConditionalControls()
-    syncVisibility()
-    renderLegend(state.mode, state.year, { wind: state.wind })
-    // The 3D choropleth is unreadable straight down; give it a camera to live in.
-    if (state.mode === 'counties' && state.countyRender === 'extruded' && map.getPitch() < 20) {
-      map.easeTo({ pitch: 50, duration: 800 })
-    }
-  })
+  // The layer list. Each checkbox owns one entry in state.layers, so adding a
+  // layer is a checkbox with a data-layer attribute and nothing else.
+  for (const box of document.querySelectorAll('[data-layer]')) {
+    box.checked = !!state.layers[box.dataset.layer]
+    box.addEventListener('change', () => {
+      state.layers[box.dataset.layer] = box.checked
+      syncConditionalControls()
+      syncVisibility()
+      renderLegend(state, state.year)
+      pitchForExtrusion()
+    })
+  }
 
   segmented('turbine-render', 'turbineRender', syncVisibility)
 
   segmented('county-render', 'countyRender', () => {
     syncVisibility()
-    if (state.countyRender === 'extruded' && map.getPitch() < 20) {
-      map.easeTo({ pitch: 50, duration: 800 })
-    }
+    pitchForExtrusion()
   })
 
   segmented('style-toggle', 'styleKey', () => {

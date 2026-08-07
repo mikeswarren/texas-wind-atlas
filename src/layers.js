@@ -340,10 +340,9 @@ export function layerSpecs({ year, filter }) {
 
     // ---- state outline -----------------------------------------------------
     // Reference geometry, not data: it says which shape you are looking at when
-    // the map opens statewide, and it is the only boundary present in BOTH
-    // modes -- the county lines are hidden in turbine mode. Hence no
-    // `visibility` here and no entry in syncVisibility(), which is an allowlist:
-    // a layer it does not name is left alone.
+    // the map opens statewide. It is its own entry in the layer list, so
+    // syncVisibility drives it like any other layer -- no `visibility` here,
+    // because the default is visible and state.layers.boundary starts true.
     //
     // Drawn ABOVE the turbine and county layers, which is the usual order for a
     // reference boundary over a thematic surface -- underneath, the density

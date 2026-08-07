@@ -352,6 +352,33 @@ input[type='range']:focus-visible { outline: 2px solid var(--series-1); outline-
 }
 .check input { accent-color: var(--series-1); width: 15px; height: 15px; }
 
+/* ---------- layer list ---------- */
+
+/* A checkbox per layer, with that layer's rendering options indented beneath it
+   and shown only while it is on. Independent toggles, not a view switch, so any
+   combination is reachable. */
+.layer-list { list-style: none; margin: 0; padding: 0; }
+.layer + .layer { margin-top: 2px; }
+
+/* Overrides .check's top margin: the list owns its own rhythm, and a checked
+   layer's sub-control has to sit tight under its name to read as belonging. */
+.layer-name { margin-top: 0; padding: 5px 0; }
+.layer-name span { color: var(--text-primary); }
+.layer-name input:not(:checked) ~ span { color: var(--text-muted); }
+
+/* Indented to clear the checkbox, so the hierarchy is legible without a rule. */
+.layer-sub { margin: 2px 0 8px 23px; }
+.layer-sub[hidden] { display: none; }
+
+.layer .wind-status { margin: 2px 0 6px 23px; }
+
+/* Between legend sections, now that more than one can be on at a time. */
+.legend-rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 11px 0;
+}
+
 /* ---------- filters ---------- */
 
 .filter-row { display: flex; flex-direction: column; gap: 12px; }

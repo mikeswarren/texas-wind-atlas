@@ -159,18 +159,8 @@ function windLegend() {
       line under the toggle.</p>`
 }
 
-export function renderLegend(mode, year, { wind = false } = {}) {
-  const box = document.getElementById('legend')
-  if (mode === 'counties') {
-    box.innerHTML = `
-      <div class="ramp">${MW_LEGEND.map((s) => `<span class="ramp-cell" style="background:${s.color}"></span>`).join('')}</div>
-      <div class="ramp-scale"><span>none</span><span>1,600+ MW</span></div>
-      <p class="legend-note">Installed capacity per county through ${year}. One hue, stepped —
-        brighter means more megawatts. In 3D, tower height carries the same value.</p>
-      ${wind ? windLegend() : ''}`
-    return
-  }
-  box.innerHTML = `
+function turbineLegend(year) {
+  return `
     <div class="legend-row">
       <span class="swatch swatch-dot" style="background:${SERIES.added}"></span>
       <span>Commissioned in ${year}</span>
@@ -180,6 +170,36 @@ export function renderLegend(mode, year, { wind = false } = {}) {
       <span>Already standing</span>
     </div>
     <p class="legend-note">Circle size scales with nameplate capacity (0.6–6 MW).
-      Below zoom 9 the points give way to a capacity-weighted density surface.</p>
-    ${wind ? windLegend() : ''}`
+      Below zoom 9 the points give way to a capacity-weighted density surface.</p>`
+}
+
+function countyLegend(year) {
+  return `
+    <div class="ramp">${MW_LEGEND.map((s) => `<span class="ramp-cell" style="background:${s.color}"></span>`).join('')}</div>
+    <div class="ramp-scale"><span>none</span><span>1,600+ MW</span></div>
+    <p class="legend-note">Installed capacity per county through ${year}. One hue, stepped —
+      brighter means more megawatts. In 3D, tower height carries the same value.</p>`
+}
+
+/**
+ * One section per visible layer, in the layer list's own order.
+ *
+ * This used to be a two-way switch on the view mode, which only worked while
+ * exactly one of turbines/counties could be on. They are independent toggles
+ * now, so the legend is assembled from whatever is actually drawn -- and an
+ * empty layer list correctly produces an empty legend rather than a key for
+ * marks that are not on the map.
+ *
+ * The state outline gets no entry on purpose: it is a colourless boundary
+ * carrying no value, and a key that only says "this line is a line" is noise.
+ */
+export function renderLegend(state, year) {
+  const box = document.getElementById('legend')
+  const parts = []
+  if (state.layers.turbines) parts.push(turbineLegend(year))
+  if (state.layers.counties) parts.push(countyLegend(year))
+  if (state.wind) parts.push(windLegend())
+  box.innerHTML = parts.length
+    ? parts.join('<hr class="legend-rule" />')
+    : '<p class="legend-note">No layers are on — pick one above.</p>'
 }

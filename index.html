@@ -81,32 +81,58 @@
         </div>
       </section>
 
-      <section class="block" aria-label="Map controls">
-        <div class="control">
-          <span class="control-label">View</span>
-          <div class="segmented" id="mode-toggle" role="group">
-            <button data-mode="turbines" class="on">Turbines</button>
-            <button data-mode="counties">Counties</button>
-          </div>
-        </div>
+      <!-- Layer list. Each entry is an independent toggle, not a view mode: the
+           counties can now sit under the turbines instead of replacing them.
+           A layer that has more than one rendering carries it as a sub-control,
+           shown only while that layer is on. -->
+      <section class="block" aria-label="Layers">
+        <div class="block-head"><h2>Layers</h2></div>
+        <ul class="layer-list">
+          <li class="layer">
+            <label class="check layer-name">
+              <input type="checkbox" id="layer-turbines" data-layer="turbines" checked />
+              <span>Turbines</span>
+            </label>
+            <div class="segmented layer-sub" id="turbine-render" role="group"
+                 data-when="turbines" aria-label="Turbine rendering">
+              <button data-render="density" class="on">Density</button>
+              <button data-render="points">Points</button>
+              <button data-render="clusters">Clusters</button>
+            </div>
+          </li>
 
-        <div class="control" data-when="turbines">
-          <span class="control-label">Turbine layer</span>
-          <div class="segmented" id="turbine-render" role="group">
-            <button data-render="density" class="on">Density</button>
-            <button data-render="points">Points</button>
-            <button data-render="clusters">Clusters</button>
-          </div>
-        </div>
+          <li class="layer">
+            <label class="check layer-name">
+              <input type="checkbox" id="layer-counties" data-layer="counties" />
+              <span>Counties — installed capacity</span>
+            </label>
+            <div class="segmented layer-sub" id="county-render" role="group"
+                 data-when="counties" aria-label="County rendering">
+              <button data-render="flat" class="on">Flat</button>
+              <button data-render="extruded">3D capacity</button>
+            </div>
+          </li>
 
-        <div class="control" data-when="counties">
-          <span class="control-label">County layer</span>
-          <div class="segmented" id="county-render" role="group">
-            <button data-render="flat" class="on">Flat</button>
-            <button data-render="extruded">3D capacity</button>
-          </div>
-        </div>
+          <li class="layer">
+            <label class="check layer-name">
+              <input type="checkbox" id="layer-boundary" data-layer="boundary" checked />
+              <span>State outline</span>
+            </label>
+          </li>
 
+          <li class="layer">
+            <label class="check layer-name">
+              <input type="checkbox" id="wind-toggle" />
+              <span>Live surface wind</span>
+            </label>
+            <p class="wind-status" id="wind-status" role="status" hidden></p>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Basemap and terrain are not layers in the list above: one is what the
+           data sits on, the other is a property of the camera. -->
+      <section class="block" aria-label="Basemap">
         <div class="control">
           <span class="control-label">Basemap</span>
           <div class="segmented" id="style-toggle" role="group">
@@ -120,12 +146,6 @@
           <input type="checkbox" id="terrain-toggle" />
           <span>3D terrain &amp; sky</span>
         </label>
-
-        <label class="check">
-          <input type="checkbox" id="wind-toggle" />
-          <span>Live surface wind</span>
-        </label>
-        <p class="wind-status" id="wind-status" role="status" hidden></p>
       </section>
 
       <section class="block" aria-label="Filters">

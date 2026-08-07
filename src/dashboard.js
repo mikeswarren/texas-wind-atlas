@@ -1,9 +1,10 @@
 /**
  * The analytics dashboard: a KPI strip plus five charts, under the map.
  *
- * It is ALWAYS PRESENT -- there is no button, no drawer, and no open/closed state.
- * The analysis is what the page is for, so it renders on landing alongside the
- * map; anything gated behind a control is a feature most visitors never find.
+ * It lives in a drawer that starts closed -- see wireDrawer() in main.js for why
+ * that reversed, and what it costs. It still renders at boot rather than on
+ * first open: the charts are built from an index that is already in memory, so
+ * there is nothing to gain by deferring and a visible pop-in to lose.
  *
  * The one rule that matters here: EVERY number is derived from the same `index`
  * the map is drawing, at the same selected year, under the same filters. There is
