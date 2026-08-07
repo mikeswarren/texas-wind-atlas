@@ -159,21 +159,39 @@
     <div class="split split-v" data-split="panel" role="separator"
          aria-orientation="vertical" aria-label="Resize the sidebar" tabindex="0"></div>
 
-    <main id="map-wrap">
+    <!-- Ships closed. The class is in the markup, not applied by script, so the
+         drawer is never briefly open on a slow first paint. -->
+    <main id="map-wrap" class="dash-closed">
       <div id="map-stage">
         <div id="map"></div>
         <div id="map-badge" class="map-badge" hidden></div>
         <div id="loading" class="loading"><span class="spinner" aria-hidden="true"></span> Loading 19,380 turbines…</div>
+
+        <button id="dash-open" class="dash-cta" aria-expanded="false" aria-controls="dash">
+          <svg class="cta-bars" viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="1.4" y="9" width="3" height="5.6" rx="1" />
+            <rect x="6.5" y="5.4" width="3" height="9.2" rx="1" />
+            <rect x="11.6" y="1.6" width="3" height="13" rx="1" />
+          </svg>
+          <span>Explore the analytics</span>
+          <svg class="cta-caret" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M4 10.2 8 6l4 4.2" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
       </div>
 
       <!-- Drag up/down to trade space between the map and the analytics. -->
-      <div class="split split-h" data-split="dash" role="separator"
+      <div class="split split-h" data-split="dash" role="separator" inert
            aria-orientation="horizontal" aria-label="Resize the analytics panel" tabindex="0"></div>
 
       <!-- Analytics. Always present -- part of the page, not a panel to open.
            Every number in here is derived from the same index the map is drawing,
            at the same year, under the same filters. -->
-      <section id="dash" class="dash" aria-label="Analytics">
+      <!-- `inert` from the first byte, not applied by script: collapsed to 0px it
+           is still in the tab order and still read aloud until something says
+           otherwise. -->
+      <section id="dash" class="dash" aria-label="Analytics" inert>
         <header class="dash-head">
           <div class="dash-title">
             <h2>Analytics</h2>
@@ -181,6 +199,7 @@
           </div>
           <div class="dash-actions">
             <button id="dash-table" class="link-btn" aria-pressed="false">Table view</button>
+            <button id="dash-hide" class="link-btn">Hide</button>
           </div>
         </header>
         <div class="kpi-row" id="kpi-row"></div>

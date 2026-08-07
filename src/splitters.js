@@ -30,6 +30,14 @@
 
 const STORE_KEY = 'twa:layout'
 
+/**
+ * Space above the divider a drag must never eat, on top of the site header:
+ * the map's mat, the splitter track, and a strip of map canvas still worth
+ * looking at. Undersized, this is how the map ends up a letterbox -- the
+ * analytics get the window and the pane that matters gets the remainder.
+ */
+const MAP_RESERVE = 250
+
 /** Height of the site header band, which is outside both resizable panes. */
 function headerHeight() {
   const el = document.querySelector('.topbar')
@@ -50,10 +58,10 @@ const AXES = {
   dash: {
     prop: '--dash-h',
     min: 56,
-    // The 190px reserve keeps a usable strip of map above the divider. The site
-    // header sits outside the panes, so its band has to come off the viewport
-    // first or that reserve is spent on chrome instead of map.
-    max: () => Math.max(120, window.innerHeight - 190 - headerHeight()),
+    // The site header sits outside both panes, so its band comes off the
+    // viewport before the reserve -- otherwise the reserve is spent on chrome
+    // and the map keeps whatever is left.
+    max: () => Math.max(120, window.innerHeight - MAP_RESERVE - headerHeight()),
     current: () => document.getElementById('dash').getBoundingClientRect().height,
     /** Pointer position -> desired analytics height. */
     measure: (e) => document.getElementById('map-wrap').getBoundingClientRect().bottom - e.clientY,

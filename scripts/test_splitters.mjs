@@ -11,7 +11,7 @@ const say = (...a) => out.push(a.join(' '))
 let checks = 0
 const WIN = { w: 1680, h: 1050 }
 const HEADER = 50 // the site header band, outside both resizable panes
-const DASH_MAX = WIN.h - 190 - HEADER
+const DASH_MAX = WIN.h - 250 - HEADER // MAP_RESERVE in splitters.js
 const panes = { panel: { width: 372 }, dash: { height: Math.round(WIN.h * 0.57) } }
 
 const inline = new Map()
@@ -78,7 +78,7 @@ check('--panel-w override', inline.get('--panel-w') || '(none)', '(none)')
 check('--dash-h override', inline.get('--dash-h') || '(none)', '(none)')
 check('panel aria-valuenow', handles.panel.attrs['aria-valuenow'], '372')
 check('dash aria-valuenow', handles.dash.attrs['aria-valuenow'], '599')
-check('dash aria-valuemax', handles.dash.attrs['aria-valuemax'], String(DASH_MAX)) // h - 190 - header
+check('dash aria-valuemax', handles.dash.attrs['aria-valuemax'], String(DASH_MAX)) // h - reserve - header
 check('onResize not called at boot', onResizeCalls, 0)
 
 say('\n2. ArrowUp on the analytics splitter -- from 599px, not from "57vh"')

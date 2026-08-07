@@ -144,11 +144,34 @@ a `case`, which is illegal and would have silently killed the turbine stroke.
 
 ## The analytics dashboard
 
-A KPI strip and five charts sit under the map and are **always there** — no
-button, no drawer, no open/closed state. The analysis is what the page is for, so
-it renders on landing alongside the map; anything gated behind a control is a
-feature most visitors never find. The split is a plain two-row CSS grid, so it is
-laid out on first paint with no script, flash, or reflow.
+A KPI strip and five charts sit under the map in a drawer that **starts closed**,
+opened by a call-to-action pinned to the bottom edge of the map.
+
+This reverses an earlier decision, and the earlier reasoning still stands on its
+own terms: anything behind a control is a feature most visitors never find, which
+is why the panel was originally always-open. What outweighed it is that the map is
+what the page is selling, and a drawer taking ~57% of the column on arrival left a
+letterbox above it. The compromise is that the trigger is not a discreet icon — it
+is a labelled, high-contrast pill in the one place the eye is already resting.
+
+Opening animates `grid-template-rows` on `#map-wrap` from `1fr 0 0` rather than
+transforming the panel. Growing the tracks keeps the drawer's bottom edge pinned
+to the window while its top edge travels, which is what reads as a slide-up; a
+transform would instead slide the panel *over* a map still sized for space it no
+longer has. Two consequences worth knowing:
+
+- **The transition is armed only while the drawer moves** (`.dash-anim`). Left on,
+  it would also fire on every window resize — `57vh` computes to a new px length —
+  and rubber-band every splitter drag.
+- **Cleanup is on a timer, not `transitionend`.** Not every engine interpolates
+  `grid-template-rows`, and `prefers-reduced-motion` cuts the transition to
+  0.01ms. Where no transition runs, no event fires, and the `map.resize()` pump
+  that keeps the canvas honest mid-slide would never stop.
+
+The closed state ships in the markup — `class="dash-closed"` on `#map-wrap`,
+`inert` on `#dash` and its splitter — so the drawer is never briefly open on a
+slow first paint, and a collapsed panel is never still in the tab order or read
+aloud.
 
 The invariant that makes it worth having: **every number in the drawer is derived
 from the same index the map is drawing, at the same selected year, under the same
@@ -206,8 +229,14 @@ stub — no browser needed):
 - **No px override is written until you actually resize something.** Publishing a
   measured value at boot would freeze the layout for visitors who never touch a
   divider, and an inline style would also beat the mobile `62vh` media query.
-- **The analytics floor is 56px, not 0.** There is no button to bring the panel
-  back, so the divider is the only handle and a 0px pane would be unhittable.
+- **The analytics floor is 56px, not 0.** A 0px pane would be unhittable, and
+  dragging to nothing is the drawer's job, not the divider's.
+- **The ceiling reserves space for the map, header included.** `MAP_RESERVE` (250px
+  — the mat, the splitter, and a strip of canvas still worth looking at) plus the
+  measured height of the site header come off the viewport before the analytics
+  get a ceiling. Budgeting only against `window.innerHeight` is how the map ends up
+  a letterbox: the header band sits outside both panes and would otherwise be paid
+  for out of the map's share.
 
 Mapbox does not notice a container resize on its own, so the drag calls
 `map.resize()`; the charts already re-draw through their own `ResizeObserver`.

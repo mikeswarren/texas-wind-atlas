@@ -650,6 +650,71 @@ function fillNotes() {
   link.textContent = 'USWTDB'
 }
 
+/* -------------------------------------------------------- analytics drawer */
+
+/**
+ * The analytics start closed. The map is what people came for, and a half-height
+ * panel of numbers on arrival buries it before anyone has asked a question.
+ *
+ * It opens by animating `grid-template-rows` on #map-wrap rather than by moving
+ * the panel: the two lower tracks grow from 0, so the drawer's bottom edge stays
+ * pinned to the window while its top edge travels upward -- which is what reads
+ * as a slide-up. Moving the panel with a transform instead would slide it over
+ * the map, and the map would then be sized for space it no longer has.
+ *
+ * Two things this has to get right:
+ *
+ *  - **Settle on a timer, not on `transitionend`.** Not every browser
+ *    interpolates `grid-template-rows`, and under `prefers-reduced-motion` the
+ *    transition is cut to 0.01ms. Where no transition runs, no event fires, and
+ *    a listener-based cleanup would leave the resize pump running forever.
+ *  - **Resize the map every frame while it moves.** Mapbox owns a canvas, not a
+ *    layout box; without this the canvas keeps its old size and the basemap
+ *    visibly stretches until the drawer lands.
+ */
+function wireDrawer() {
+  const wrap = document.getElementById('map-wrap')
+  const dash = document.getElementById('dash')
+  const handle = document.querySelector('[data-split="dash"]')
+  const openBtn = document.getElementById('dash-open')
+  const hideBtn = document.getElementById('dash-hide')
+  const SETTLE_MS = 460 // a little past the 0.4s transition in the stylesheet
+  let frame = null
+  let settle = null
+
+  function stopPump() {
+    if (frame !== null) cancelAnimationFrame(frame)
+    frame = null
+    wrap.classList.remove('dash-anim')
+    if (map) map.resize()
+  }
+
+  function setOpen(next) {
+    wrap.classList.add('dash-anim')
+    wrap.classList.toggle('dash-closed', !next)
+    openBtn.setAttribute('aria-expanded', String(next))
+    // Closed, the drawer and its splitter leave the tab order and the
+    // accessibility tree -- not merely the screen.
+    dash.inert = !next
+    handle.inert = !next
+    if (next) dash.scrollTop = 0
+
+    const pump = () => { if (map) map.resize(); frame = requestAnimationFrame(pump) }
+    if (frame === null) frame = requestAnimationFrame(pump)
+    clearTimeout(settle)
+    settle = setTimeout(stopPump, SETTLE_MS)
+  }
+
+  // Move focus with the panel, so a keyboard user who opens the drawer is
+  // already inside it and lands back on the trigger when it closes.
+  openBtn.addEventListener('click', () => { setOpen(true); hideBtn.focus() })
+  hideBtn.addEventListener('click', () => { setOpen(false); openBtn.focus() })
+
+  // Match the closed class the markup already ships with.
+  dash.inert = true
+  handle.inert = true
+}
+
 /* ------------------------------------------------------------------- boot */
 
 async function boot() {
@@ -690,6 +755,7 @@ async function boot() {
   // The charts re-draw themselves through their own ResizeObserver; the map does
   // not, so its canvas has to be told its container changed.
   createSplitters({ onResize: () => { if (map) map.resize() } })
+  wireDrawer()
 
   fillManufacturers()
   fillNotes()

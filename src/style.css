@@ -20,6 +20,12 @@
   --radius: 10px;
   /* Gutter between the framed map and everything around it. */
   --mat: 12px;
+  /* The one call-to-action colour. Deliberately outside the data palette --
+     --series-1/2 mean "standing" and "commissioned this year" on the map, and a
+     button wearing either would read as a key. Teal is unclaimed here, and at
+     this lightness it carries dark ink at well past 4.5:1. */
+  --cta: #19e3c4;
+  --cta-ink: #04241f;
   color-scheme: dark;
 }
 
@@ -83,6 +89,10 @@ a { color: var(--series-1); }
   background: var(--surface-1);
   z-index: 6;
   touch-action: none;
+  /* Clips the hairline when the drawer collapses this track to 0px -- a 1px
+     absolutely-positioned line would otherwise still paint on a zero-height
+     track, leaving a stray rule floating under the map. */
+  overflow: hidden;
 }
 .split::after {
   content: '';
@@ -445,6 +455,16 @@ select {
   grid-template-rows: minmax(0, 1fr) var(--split) var(--dash-h);
   min-height: 0;
 }
+
+/* Collapsing both lower tracks is what makes the drawer slide: the panel's
+   bottom edge stays pinned to the window while its top edge travels, so opening
+   reads as the analytics rising from the bottom rather than a box unfolding. */
+#map-wrap.dash-closed { grid-template-rows: minmax(0, 1fr) 0px 0px; }
+
+/* Armed only while the drawer is actually moving. Left on permanently this
+   would also fire on every window resize -- 57vh computes to a new px length --
+   and would rubber-band each splitter drag. */
+#map-wrap.dash-anim { transition: grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
 /* The map is the only pane made of imagery rather than a filled surface, so it
    is the one that reads as "bleeding" when it touches the window edge. Sitting
    it on a mat with a hairline frame gives it an edge of its own. */
@@ -504,6 +524,52 @@ select {
   animation: spin 0.9s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- analytics call-to-action ---------- */
+
+/* Bottom-centre of the map: the drawer opens from that edge, so the control
+   sits where the thing it summons will appear. It clears Mapbox's own chrome --
+   the logo is bottom-left, the scale bar and attribution bottom-right. */
+.dash-cta {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 17px 10px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--cta);
+  color: var(--cta-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 640;
+  cursor: pointer;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(25, 227, 196, 0.14);
+  animation: cta-pulse 2.8s ease-in-out infinite;
+  transition: box-shadow 0.18s, filter 0.18s;
+}
+.dash-cta:hover { filter: brightness(1.08); }
+.dash-cta:focus-visible { outline: 2px solid var(--cta); outline-offset: 3px; }
+.dash-cta:active { filter: brightness(0.94); }
+
+.dash-cta .cta-bars { width: 15px; height: 15px; fill: currentColor; flex: none; }
+.dash-cta .cta-caret { width: 13px; height: 13px; flex: none; opacity: 0.75; }
+
+/* A slow halo rather than a bounce or a colour flash: enough to catch the eye
+   against a dark basemap without competing with the map for attention. */
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(25, 227, 196, 0.14); }
+  50%      { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 11px rgba(25, 227, 196, 0.05); }
+}
+
+/* Open, the drawer's own "Hide" is the control -- two ways to close it in view
+   at once would just be noise. */
+#map-wrap:not(.dash-closed) .dash-cta { display: none; }
 
 /* Mapbox chrome, restyled to match the panel. */
 .mapboxgl-ctrl-group {
@@ -790,5 +856,7 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation: none; }
+  /* The drawer still opens, it just arrives instead of travelling. */
+  .dash-cta { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }
