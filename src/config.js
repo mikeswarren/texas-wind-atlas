@@ -82,9 +82,20 @@ export const STYLES = {
 export const PLACES = [
   {
     id: 'statewide',
+    // Also the landing camera -- main.js opens on PLACES[0], so this entry and
+    // the "Statewide" chip are the same view by construction, and the chip
+    // genuinely returns you to where you started.
+    //
+    // 4.9 rather than 5.2: enough margin around the state that the build-out
+    // reads as a shape on a map instead of filling the frame edge to edge.
+    //
+    // Check `maxBounds` in main.js before lowering this again. That box imposes
+    // a zoom floor that grows with the window, and a preset below the floor is
+    // not an error -- Mapbox just overrides it, so the change looks like it did
+    // nothing. At the current 40deg box the floor is ~4.9 on a 1080p window.
     label: 'Statewide',
     blurb: 'All 19,380 turbines across 102 counties.',
-    camera: { center: [-99.6, 31.3], zoom: 5.2, pitch: 0, bearing: 0 },
+    camera: { center: [-99.6, 31.3], zoom: 4.9, pitch: 0, bearing: 0 },
   },
   {
     id: 'nolan',

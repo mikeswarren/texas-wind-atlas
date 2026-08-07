@@ -775,8 +775,18 @@ async function boot() {
     ...PLACES[0].camera,
     maxZoom: 16,
     attributionControl: true,
-    // Texas only -- no reason to let the camera wander to the Pacific.
-    maxBounds: [[-115, 21], [-83, 41]],
+    // Texas and a margin -- still no wandering to the Pacific, but wide enough
+    // that the box is not silently setting the zoom.
+    //
+    // maxBounds is not only a pan limit: Mapbox will not let the viewport show
+    // more than the box, so it imposes a *zoom floor* that grows with the
+    // window. The old [-115,21]..[-83,41] was 32deg across, which floors a
+    // 1920x1080 window at z5.06 and a 1440p one at z5.57 -- so the statewide
+    // preset's 5.2 was already being overridden on the larger of those, and any
+    // attempt to open further out would have been quietly ignored rather than
+    // applied. 40deg puts the floor below the preset on every common size up to
+    // 1080p, and improves 1440p from 5.57 to 5.24 instead of leaving it stuck.
+    maxBounds: [[-119, 19], [-79, 43]],
   })
 
   map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right')
