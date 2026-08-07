@@ -20,12 +20,16 @@
   --radius: 10px;
   /* Gutter between the framed map and everything around it. */
   --mat: 12px;
-  /* The one call-to-action colour. Deliberately outside the data palette --
-     --series-1/2 mean "standing" and "commissioned this year" on the map, and a
-     button wearing either would read as a key. Teal is unclaimed here, and at
-     this lightness it carries dark ink at well past 4.5:1. */
-  --cta: #19e3c4;
-  --cta-ink: #04241f;
+  /* The one call-to-action colour: 5.5:1 on its own ink, 5.7:1 against the map.
+     It is separated from --series-2 (#d95926) by hue only -- the two sit at
+     almost the same luminance (1.15:1), so greyscale or red-green CVD will not
+     tell them apart. That is tolerable *here* and nowhere else: this is a
+     labelled pill in fixed page chrome, and the word on it carries the meaning.
+     The moment a red like this lands on a map mark or a chart series, it is
+     indistinguishable from "commissioned this year" for a chunk of readers.
+     Anything encoding data goes through the dataviz palette, not this token. */
+  --cta: #f2564a;
+  --cta-ink: #2a0806;
   color-scheme: dark;
 }
 
@@ -549,7 +553,7 @@ select {
   cursor: pointer;
   white-space: nowrap;
   transform: translateX(-50%);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(25, 227, 196, 0.14);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(242, 86, 74, 0.18);
   animation: cta-pulse 2.8s ease-in-out infinite;
   transition: box-shadow 0.18s, filter 0.18s;
 }
@@ -563,8 +567,8 @@ select {
 /* A slow halo rather than a bounce or a colour flash: enough to catch the eye
    against a dark basemap without competing with the map for attention. */
 @keyframes cta-pulse {
-  0%, 100% { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(25, 227, 196, 0.14); }
-  50%      { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 11px rgba(25, 227, 196, 0.05); }
+  0%, 100% { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(242, 86, 74, 0.18); }
+  50%      { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 0 11px rgba(242, 86, 74, 0.06); }
 }
 
 /* Open, the drawer's own "Hide" is the control -- two ways to close it in view
