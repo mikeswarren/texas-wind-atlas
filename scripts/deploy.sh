@@ -79,9 +79,9 @@ echo "Deployed. $(find "$SITE" -type f | wc -l) files, $(du -sh "$SITE" | cut -f
 # the same project name against the base file alone and re-point the live
 # container at that clone's empty dist/.
 if command -v docker >/dev/null 2>&1; then
-  if ! docker ps --format '{{.Names}}' | grep -qx texas-wind-atlas-caddy-1; then
+  if ! docker ps --format '{{.Names}}' | grep -qx texas-wind-atlas-caddy; then
     echo
-    echo "WARNING: texas-wind-atlas-caddy-1 is not running, so nothing is serving"
+    echo "WARNING: texas-wind-atlas-caddy is not running, so nothing is serving"
     echo "         these files. Start it from a full checkout (NOT the build clone):"
     echo "           cd ~/claude/texas-wind-atlas && docker compose up -d"
   fi
