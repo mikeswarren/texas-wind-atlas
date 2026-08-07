@@ -431,9 +431,12 @@ export function layerSpecs({ year, filter }) {
 export function installLayers(map, { turbines, counties, texas, year, filter, metar }) {
   const sources = sourceSpecs()
   sources.turbines.data = turbines
-  sources.counties.data = counties
-  // Optional: the outline is context, so a failed fetch costs the border and
-  // nothing else. Left empty, the layer draws nothing and everything else works.
+  // Both are optional and default to an empty FeatureCollection. Counties are
+  // fetched on demand (see ensureCounties) so they are genuinely absent until
+  // the layer is switched on; the outline is context, so a failed fetch costs
+  // the border and nothing else. Either way the layer draws nothing rather than
+  // handing Mapbox a null `data`, which is not a valid source spec.
+  if (counties) sources.counties.data = counties
   if (texas) sources.texas.data = texas
   // Re-seed with whatever the last poll returned, so a basemap switch does not
   // blank the wind for the five minutes until the next one.

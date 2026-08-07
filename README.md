@@ -32,7 +32,20 @@ Texas wind arriving county by county.
 
 - **Turbines** — [U.S. Wind Turbine Database][uswtdb] (USGS, LBNL and ACP),
   Texas subset, public domain. Pulled live from the public PostgREST API.
-- **County boundaries** — U.S. Census cartographic boundary files.
+- **State and county boundaries** — Texas's own ArcGIS Feature Services
+  (`Texas_State_Boundary`, `Texas_County_Boundaries`), authoritative for this
+  state. The county layer publishes `FIPS_ST_CNTY_CD`, the same 5-digit code
+  USWTDB reports as `t_fips`, so the join needs no name matching or crosswalk —
+  all 254 polygons keep their FIPS and 102 of them carry turbines, which agrees
+  with the independently computed statewide county count.
+
+  Both are survey-grade and enormous: 90k vertices for the state, 660k across
+  the counties, 24 MB of JSON for the latter alone. `build_data.py` simplifies
+  them (Douglas-Peucker, ~110 m) to 30 KB and 184 KB gzipped. Rings are
+  simplified independently, so a shared county border can generalise two
+  slightly different ways and leave a sliver up to the tolerance wide — under a
+  pixel below about zoom 11, which is where a choropleth is read. Raising the
+  tolerance much further wants a topology-aware simplifier instead.
 - **Live wind** — NOAA [aviation weather][awc] METARs, fetched in the browser and
   never baked: a METAR is stale within the hour, so anything written to disk
   would ship already wrong. Only the station roster is built ahead of time.
@@ -55,7 +68,7 @@ the footprint is never a surprise.
 | File | Contents |
 | --- | --- |
 | `turbines.geojson` | One point per turbine, short property keys — 4.2 MB raw, 182 KB gzipped |
-| `counties.geojson` | 254 Texas counties with all-time joined statistics |
+| `counties.geojson` | 254 Texas counties with all-time joined statistics — **fetched on demand**, not at boot: it is 184 KB gzipped and its layer starts off |
 | `summary.json` | Statewide rollups, manufacturer list, records |
 | `stations.json` | 215 Texas METAR stations — the roster for the live wind layer |
 

@@ -100,9 +100,8 @@ async function loadData() {
     if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`)
     return res.json()
   }
-  const [turbines, counties, summary, texas] = await Promise.all([
+  const [turbines, summary, texas] = await Promise.all([
     get('turbines.geojson'),
-    get('counties.geojson'),
     get('summary.json'),
     // The state outline is reference geometry, so it is optional the way the
     // station roster below is: losing it costs a border, not the map. It rides
@@ -110,6 +109,13 @@ async function loadData() {
     // afterwards it would add a serial round trip before the first paint.
     get('texas.geojson').catch(() => null),
   ])
+  // counties.geojson is NOT fetched here. The authoritative Texas county
+  // boundaries are 182 KB gzipped -- as much as all 19,380 turbines -- and the
+  // county layer starts switched off, so loading it at boot would charge every
+  // visitor for a layer most never turn on. ensureCounties() pulls it the first
+  // time the layer is enabled. Nothing else needs it: the dashboard's county
+  // rankings are built from the turbine records' own county fields, not from
+  // this file.
   // The station roster is optional on purpose. It only feeds the live wind
   // overlay, so a missing or unreadable stations.json costs that one control --
   // it must never stop 19,380 turbines from drawing.
@@ -119,7 +125,40 @@ async function loadData() {
   } catch {
     stations = null
   }
-  return { turbines, counties, texas, summary, stations }
+  return { turbines, counties: null, texas, summary, stations }
+}
+
+/**
+ * Fetch the county boundaries the first time the layer is switched on, then
+ * feed the already-installed (empty) source and paint the year into it.
+ *
+ * Idempotent and safe to call concurrently: the in-flight promise is cached, so
+ * toggling the layer twice quickly issues one request. A failure leaves
+ * data.counties null and is retried on the next toggle rather than latched.
+ */
+let countiesPending = null
+function ensureCounties() {
+  if (data.counties) return Promise.resolve(data.counties)
+  if (countiesPending) return countiesPending
+  const base = import.meta.env.BASE_URL
+  countiesPending = fetch(`${base}data/counties.geojson`)
+    .then((res) => {
+      if (!res.ok) throw new Error(`counties.geojson: HTTP ${res.status}`)
+      return res.json()
+    })
+    .then((geo) => {
+      data.counties = geo
+      const src = map && map.getSource('counties')
+      if (src) src.setData(geo)
+      paintCountiesWhenReady()
+      return geo
+    })
+    .catch((err) => {
+      console.error(err)
+      return null
+    })
+    .finally(() => { countiesPending = null })
+  return countiesPending
 }
 
 /* ------------------------------------------------------------- map layers */
@@ -187,6 +226,11 @@ function refreshClusters() {
 
 /** Push this year's county totals into feature-state so the choropleth repaints. */
 function paintCounties() {
+  // Not an error: the boundaries load on demand, so until the layer has been
+  // switched on there is nothing to paint. Reported as done so the retry
+  // listener below unsubscribes instead of waiting for a source that is empty
+  // on purpose.
+  if (!data.counties) return true
   if (!map.getSource('counties') || !map.isSourceLoaded('counties')) return false
   const i = state.year - state.yearMin
   for (const f of data.counties.features) {
@@ -524,6 +568,9 @@ function wireControls() {
     box.checked = !!state.layers[box.dataset.layer]
     box.addEventListener('change', () => {
       state.layers[box.dataset.layer] = box.checked
+      // The county boundaries are the one layer whose data is not already in
+      // memory; switching it on is what pays for them.
+      if (box.dataset.layer === 'counties' && box.checked) ensureCounties()
       syncConditionalControls()
       syncVisibility()
       renderLegend(state, state.year)
@@ -659,9 +706,18 @@ function pickManufacturer(name) {
   applyFilters()
 }
 
-function pickCounty(fips) {
-  const feature = data.counties.features.find((f) => f.id === Number(fips))
-  if (!feature || !map) return
+/**
+ * Zoom to a county picked from the analytics ranking.
+ *
+ * Has to await the boundaries: this is reachable with the county layer switched
+ * off -- the ranking is built from the turbine records, not from the polygons --
+ * and before this was lazy it could assume they were already in memory.
+ */
+async function pickCounty(fips) {
+  const counties = await ensureCounties()
+  if (!counties || !map) return
+  const feature = counties.features.find((f) => f.id === Number(fips))
+  if (!feature) return
   map.fitBounds(featureBounds(feature), { padding: 72, duration: 1500, pitch: 0, bearing: 0 })
 }
 

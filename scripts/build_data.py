@@ -5,9 +5,9 @@ Sources
 -------
 USWTDB  U.S. Wind Turbine Database (USGS / LBNL / ACP), public PostgREST API.
         https://energy.usgs.gov/uswtdb/  --  public domain (USGS)
-Counties  Census cartographic county boundaries, pre-simplified GeoJSON mirror.
-State     USGS National Atlas state boundaries (statesp010), GeoJSON mirror.
-          Simplified here -- the upstream outline is 1.6 MB, see STATE_URL.
+Boundaries  Texas ArcGIS Feature Services (state outline + 254 counties),
+            authoritative for this state. Survey-grade and enormous -- 24 MB of
+            county geometry alone -- so both are simplified here. See ARCGIS.
 
 Outputs (public/data/)
 ---------------------
@@ -36,19 +36,41 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 USWTDB = "https://energy.usgs.gov/api/uswtdb/v1/turbines"
-COUNTIES_URL = (
-    "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
+# Boundaries come from Texas's own ArcGIS Feature Services -- authoritative for
+# this state, and the county layer carries the 5-digit FIPS the turbine join
+# needs. `where=1=1` selects every feature; both layers are well under the
+# service's 1000-record ceiling, so neither response paginates.
+#
+# NOTE the field names: the layers publish CNTY_NM / FIPS_ST_CNTY_CD, not the
+# COUNTY / FIPS_ST_CNTY_CODE you might expect, and the state layer has no
+# STATE_NAME at all. Asking for a field that does not exist fails the whole
+# query with a 400 "'outFields' parameter is invalid" -- check
+# `.../FeatureServer/0?f=json` before editing these.
+ARCGIS = "https://services.arcgis.com/KTcxiTD9dsQw4r7Z/arcgis/rest/services"
+STATE_URL = (
+    f"{ARCGIS}/Texas_State_Boundary/FeatureServer/0/query"
+    "?where=1%3D1&outFields=FIPS&outSR=4326&f=geojson"
 )
-# Texas state outline. USGS National Atlas state boundaries (statesp010),
-# republished as GeoJSON -- the properties carry that layer's field names.
-STATE_URL = "https://raw.githubusercontent.com/Cincome/tx.geojson/master/tx.geojson"
-# The upstream file is 1.6 MB: 36,600 vertices at fifteen decimal places, which
-# is sub-micron precision on a shape drawn at most a few thousand pixels wide.
-# Shipped as-is it would gzip to 516 KB -- 2.5x the entire turbine dataset, for
-# one outline. Simplifying to ~110 m and rounding to ~1 m costs nothing visible
-# at any zoom this map reaches and takes it to 57 KB.
-STATE_TOLERANCE = 0.001  # degrees; ~110 m at this latitude
-STATE_PRECISION = 5      # decimal places; ~1 m
+COUNTIES_URL = (
+    f"{ARCGIS}/Texas_County_Boundaries/FeatureServer/0/query"
+    "?where=1%3D1&outFields=CNTY_NM,CNTY_NBR,FIPS_ST_CNTY_CD&outSR=4326&f=geojson"
+)
+
+# These are survey-grade outlines: 90k vertices for the state, 660k across the
+# 254 counties, which is 3.3 MB and 24 MB of JSON respectively. Unsimplified they
+# gzip to 480 KB and 3.4 MB -- the county file alone would be 18x the entire
+# turbine feed. Douglas-Peucker at ~110 m brings them to 30 KB and 174 KB with
+# no difference visible at the zooms a statewide map is read at.
+#
+# CAVEAT on the county tolerance: rings are simplified independently, so a
+# border shared by two counties can be generalised two slightly different ways
+# and leave a sliver up to the tolerance wide. At 110 m that is well under a
+# pixel until roughly zoom 11, and the county choropleth is a statewide and
+# regional view. Do not raise it much further without switching to a
+# topology-aware simplifier.
+STATE_TOLERANCE = 0.001   # degrees; ~110 m at this latitude
+COUNTY_TOLERANCE = 0.001
+GEOM_PRECISION = 5        # decimal places; ~1 m
 # Roster of reporting stations for the live METAR layer. The observation
 # endpoint is queried by explicit id list at runtime, so this is what decides
 # which stations the atlas asks about -- see build_stations().
@@ -255,7 +277,8 @@ def build_counties(rows: list[dict], refresh: bool) -> tuple[dict, dict]:
     totals from the turbine features it already has (src/stats.js). These
     properties are the unfiltered all-time context shown alongside.
     """
-    raw = json.loads(fetch(COUNTIES_URL, "us_counties.json", refresh))
+    # See build_state on why the cache name carries the provider.
+    raw = json.loads(fetch(COUNTIES_URL, "tx_counties_arcgis.json", refresh))
 
     stats: dict[str, dict] = defaultdict(
         lambda: {"n": 0, "mw": 0.0, "first": None, "last": None, "hh": [], "projects": set()}
@@ -277,14 +300,26 @@ def build_counties(rows: list[dict], refresh: bool) -> tuple[dict, dict]:
             s["projects"].add(r["p_name"])
 
     features = []
+    skipped = 0
+    before = after = 0
     for feat in raw["features"]:
-        fips = feat.get("id") or feat["properties"].get("GEO_ID", "")[-5:]
-        if not fips.startswith(TX_FIPS):
+        attrs = feat["properties"]
+        # FIPS_ST_CNTY_CD is the 5-digit state+county code, and it is what makes
+        # this layer usable: it is the same key USWTDB reports as t_fips, so the
+        # join needs no name matching and no crosswalk.
+        fips = str(attrs.get("FIPS_ST_CNTY_CD") or "").strip()
+        if len(fips) != 5 or not fips.startswith(TX_FIPS):
+            skipped += 1
             continue
+        geom, b, a = simplify_geometry(feat["geometry"], COUNTY_TOLERANCE)
+        before += b
+        after += a
         s = stats.get(fips)
         props = {
             "fips": fips,
-            "name": feat["properties"].get("NAME", ""),
+            # Already bare ("Uvalde", not "Uvalde County"), which is the form the
+            # turbine records are normalised to -- so the two agree on screen.
+            "name": attrs.get("CNTY_NM", ""),
             "n": s["n"] if s else 0,
             "mw": round(s["mw"], 1) if s else 0.0,
             "first": s["first"] if s else None,
@@ -292,7 +327,20 @@ def build_counties(rows: list[dict], refresh: bool) -> tuple[dict, dict]:
             "hh": round(statistics.mean(s["hh"]), 1) if s and s["hh"] else None,
             "projects": len(s["projects"]) if s else 0,
         }
-        features.append({"type": "Feature", "id": int(fips), "geometry": feat["geometry"], "properties": props})
+        # Numeric id, not a property: feature-state addresses polygons by id, and
+        # the choropleth repaints through it on every timeline tick.
+        features.append({"type": "Feature", "id": int(fips), "geometry": geom, "properties": props})
+
+    matched = sum(1 for f in features if f["properties"]["n"] > 0)
+    print(
+        f"  counties: {len(features)} kept ({skipped} skipped), {matched} with turbines, "
+        f"{before:,} -> {after:,} vertices"
+    )
+    # Every county the turbines claim must exist in the boundary layer, or the
+    # choropleth would quietly drop capacity the stat tiles still count.
+    missing = sorted(set(stats) - {f["properties"]["fips"] for f in features})
+    if missing:
+        print(f"  WARNING: {len(missing)} FIPS with turbines have no polygon: {missing[:8]}")
 
     features.sort(key=lambda f: -f["properties"]["mw"])
     return {"type": "FeatureCollection", "features": features}, stats
@@ -340,6 +388,27 @@ def simplify_ring(ring: list, tol: float) -> list:
     return out if len(out) >= 4 else ring
 
 
+def simplify_geometry(geom: dict, tol: float) -> tuple[dict, int, int]:
+    """Simplify every ring of a Polygon or MultiPolygon; return (geom, before, after).
+
+    Both shapes are handled because these services publish Polygon for a
+    single-part county and MultiPolygon for one with islands, and which you get
+    is a property of the feature rather than of the layer.
+    """
+    parts = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+    before = after = 0
+    out = []
+    for poly in parts:
+        rings = []
+        for ring in poly:
+            before += len(ring)
+            simple = simplify_ring([(q[0], q[1]) for q in ring], tol)
+            after += len(simple)
+            rings.append([[round(x, GEOM_PRECISION), round(y, GEOM_PRECISION)] for x, y in simple])
+        out.append(rings)
+    return {"type": "MultiPolygon", "coordinates": out}, before, after
+
+
 def build_state(refresh: bool) -> dict:
     """The Texas state outline, simplified, as one MultiPolygon feature.
 
@@ -349,27 +418,18 @@ def build_state(refresh: bool) -> dict:
     is one clean stroke, and it is the reference layer that tells you which
     shape you are looking at when the map opens zoomed out.
     """
-    raw = json.loads(fetch(STATE_URL, "tx_state.geojson", refresh))
+    # Cache key names the SOURCE, not just the layer. fetch() keys on this
+    # filename, so reusing an old name after changing a URL silently serves the
+    # previous provider's geometry until someone thinks to pass --refresh.
+    raw = json.loads(fetch(STATE_URL, "tx_state_arcgis.json", refresh))
 
     polygons: list = []
     before = after = 0
     for feat in raw["features"]:
-        geom = feat["geometry"]
-        parts = (
-            geom["coordinates"]
-            if geom["type"] == "MultiPolygon"
-            else [geom["coordinates"]]
-        )
-        for poly in parts:
-            rings = []
-            for ring in poly:
-                before += len(ring)
-                simple = simplify_ring([(p[0], p[1]) for p in ring], STATE_TOLERANCE)
-                after += len(simple)
-                rings.append(
-                    [[round(x, STATE_PRECISION), round(y, STATE_PRECISION)] for x, y in simple]
-                )
-            polygons.append(rings)
+        geom, b, a = simplify_geometry(feat["geometry"], STATE_TOLERANCE)
+        before += b
+        after += a
+        polygons.extend(geom["coordinates"])
 
     print(f"  state outline: {len(polygons)} polygons, {before:,} -> {after:,} vertices")
     return {
