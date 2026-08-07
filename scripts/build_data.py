@@ -6,11 +6,14 @@ Sources
 USWTDB  U.S. Wind Turbine Database (USGS / LBNL / ACP), public PostgREST API.
         https://energy.usgs.gov/uswtdb/  --  public domain (USGS)
 Counties  Census cartographic county boundaries, pre-simplified GeoJSON mirror.
+State     USGS National Atlas state boundaries (statesp010), GeoJSON mirror.
+          Simplified here -- the upstream outline is 1.6 MB, see STATE_URL.
 
 Outputs (public/data/)
 ---------------------
 turbines.geojson   one point per Texas turbine, short property keys
 counties.geojson   254 Texas counties with joined wind statistics
+texas.geojson      the state outline, one simplified MultiPolygon
 summary.json       statewide rollups: per-year build-out, manufacturers, records
 
 Raw API pages are cached under scripts/.cache/ so re-runs don't hammer USGS.
@@ -24,6 +27,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import json
+import math
 import statistics
 import sys
 import time
@@ -35,6 +39,16 @@ USWTDB = "https://energy.usgs.gov/api/uswtdb/v1/turbines"
 COUNTIES_URL = (
     "https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json"
 )
+# Texas state outline. USGS National Atlas state boundaries (statesp010),
+# republished as GeoJSON -- the properties carry that layer's field names.
+STATE_URL = "https://raw.githubusercontent.com/Cincome/tx.geojson/master/tx.geojson"
+# The upstream file is 1.6 MB: 36,600 vertices at fifteen decimal places, which
+# is sub-micron precision on a shape drawn at most a few thousand pixels wide.
+# Shipped as-is it would gzip to 516 KB -- 2.5x the entire turbine dataset, for
+# one outline. Simplifying to ~110 m and rounding to ~1 m costs nothing visible
+# at any zoom this map reaches and takes it to 57 KB.
+STATE_TOLERANCE = 0.001  # degrees; ~110 m at this latitude
+STATE_PRECISION = 5      # decimal places; ~1 m
 # Roster of reporting stations for the live METAR layer. The observation
 # endpoint is queried by explicit id list at runtime, so this is what decides
 # which stations the atlas asks about -- see build_stations().
@@ -284,6 +298,92 @@ def build_counties(rows: list[dict], refresh: bool) -> tuple[dict, dict]:
     return {"type": "FeatureCollection", "features": features}, stats
 
 
+def _perpendicular(pt, a, b) -> float:
+    """Distance from `pt` to the segment a-b, in degrees."""
+    px, py = pt
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    den = math.hypot(dx, dy)
+    if den == 0:
+        return math.hypot(px - ax, py - ay)
+    return abs(dy * px - dx * py + bx * ay - by * ax) / den
+
+
+def simplify_ring(ring: list, tol: float) -> list:
+    """Douglas-Peucker, iterative rather than recursive.
+
+    The Gulf coastline is one ring of several thousand nearly-collinear points,
+    which is the exact shape that drives the textbook recursive form straight
+    past Python's recursion limit. An explicit stack has no such ceiling.
+    """
+    if len(ring) < 5:
+        return ring
+    keep = [False] * len(ring)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(ring) - 1)]
+    while stack:
+        lo, hi = stack.pop()
+        far, dmax = -1, tol
+        for i in range(lo + 1, hi):
+            d = _perpendicular(ring[i], ring[lo], ring[hi])
+            if d > dmax:
+                far, dmax = i, d
+        if far >= 0:
+            keep[far] = True
+            stack.append((lo, far))
+            stack.append((far, hi))
+    out = [p for p, k in zip(ring, keep) if k]
+    # A closed ring needs four positions. Anything that collapses below that is
+    # a sliver island the tolerance swallowed -- keep the original rather than
+    # emit geometry Mapbox will silently drop.
+    return out if len(out) >= 4 else ring
+
+
+def build_state(refresh: bool) -> dict:
+    """The Texas state outline, simplified, as one MultiPolygon feature.
+
+    Kept separate from counties.geojson even though the state edge is implicit
+    in those 254 polygons: dissolving them at runtime is work on every load, and
+    the union of cartographic county boundaries leaves seams on the coast. This
+    is one clean stroke, and it is the reference layer that tells you which
+    shape you are looking at when the map opens zoomed out.
+    """
+    raw = json.loads(fetch(STATE_URL, "tx_state.geojson", refresh))
+
+    polygons: list = []
+    before = after = 0
+    for feat in raw["features"]:
+        geom = feat["geometry"]
+        parts = (
+            geom["coordinates"]
+            if geom["type"] == "MultiPolygon"
+            else [geom["coordinates"]]
+        )
+        for poly in parts:
+            rings = []
+            for ring in poly:
+                before += len(ring)
+                simple = simplify_ring([(p[0], p[1]) for p in ring], STATE_TOLERANCE)
+                after += len(simple)
+                rings.append(
+                    [[round(x, STATE_PRECISION), round(y, STATE_PRECISION)] for x, y in simple]
+                )
+            polygons.append(rings)
+
+    print(f"  state outline: {len(polygons)} polygons, {before:,} -> {after:,} vertices")
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"name": "Texas"},
+                "geometry": {"type": "MultiPolygon", "coordinates": polygons},
+            }
+        ],
+    }
+
+
 def build_summary(rows: list[dict], counties: dict, imputed: int, unknown: int) -> dict:
     """Statewide rollups the UI reads directly -- no client-side aggregation."""
     per_year: dict[int, dict] = defaultdict(lambda: {"n": 0, "mw": 0.0})
@@ -401,9 +501,11 @@ def main() -> int:
     counties, _ = build_counties(mapped, args.refresh)
     summary = build_summary(mapped, counties, imputed, unknown)
     stations = build_stations(args.refresh)
+    state = build_state(args.refresh)
 
     write(OUT / "turbines.geojson", turbines)
     write(OUT / "counties.geojson", counties)
+    write(OUT / "texas.geojson", state)
     write(OUT / "summary.json", summary, minify=False)
     write(OUT / "stations.json", stations, minify=False)
 

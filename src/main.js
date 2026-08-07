@@ -41,7 +41,7 @@ const state = {
 }
 
 let map = null
-let data = { turbines: null, counties: null, summary: null }
+let data = { turbines: null, counties: null, texas: null, summary: null }
 let index = null
 let timeline = null
 let dashboard = null
@@ -97,10 +97,15 @@ async function loadData() {
     if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`)
     return res.json()
   }
-  const [turbines, counties, summary] = await Promise.all([
+  const [turbines, counties, summary, texas] = await Promise.all([
     get('turbines.geojson'),
     get('counties.geojson'),
     get('summary.json'),
+    // The state outline is reference geometry, so it is optional the way the
+    // station roster below is: losing it costs a border, not the map. It rides
+    // in this batch rather than after it because install() wants it -- fetched
+    // afterwards it would add a serial round trip before the first paint.
+    get('texas.geojson').catch(() => null),
   ])
   // The station roster is optional on purpose. It only feeds the live wind
   // overlay, so a missing or unreadable stations.json costs that one control --
@@ -111,7 +116,7 @@ async function loadData() {
   } catch {
     stations = null
   }
-  return { turbines, counties, summary, stations }
+  return { turbines, counties, texas, summary, stations }
 }
 
 /* ------------------------------------------------------------- map layers */
@@ -120,6 +125,7 @@ function install() {
   installLayers(map, {
     turbines: data.turbines,
     counties: data.counties,
+    texas: data.texas,
     year: state.year,
     filter: turbineFilter(state),
     metar: wind ? wind.collection : null,

@@ -139,6 +139,8 @@ export function sourceSpecs() {
     // promoteId is unnecessary: build_data.py writes a numeric feature id (the
     // county FIPS), so feature-state can address polygons directly.
     counties: { type: 'geojson', data: empty },
+    // The state outline. One simplified MultiPolygon; see build_data.py.
+    texas: { type: 'geojson', data: empty },
     // Live METARs. Starts empty on every style load and is filled by the first
     // fetch, so a style switch never blocks on the network.
     metar: { type: 'geojson', data: empty },
@@ -231,6 +233,30 @@ export function layerSpecs({ year, filter }) {
           'rgba(255,255,255,0.22)',
         ],
         'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2, 0.6],
+      },
+    },
+
+    // ---- state outline -----------------------------------------------------
+    // Reference geometry, not data: it says which shape you are looking at when
+    // the map opens statewide, and it is the only boundary present in BOTH
+    // modes -- the county lines above are hidden in turbine mode. Hence no
+    // `visibility` here and no entry in syncVisibility(), which is an
+    // allowlist: a layer it does not name is simply left alone.
+    //
+    // Sits above the county fills so the choropleth cannot bury it, and below
+    // the turbine layers so it never draws over a data mark. Deliberately
+    // colourless -- white at low alpha carries no meaning on a page where blue
+    // and orange both do.
+    {
+      id: 'state-line',
+      type: 'line',
+      source: 'texas',
+      paint: {
+        'line-color': 'rgba(255,255,255,0.42)',
+        // Zoom is top-level in the interpolate, which is the only place the
+        // style spec allows it -- nesting ["zoom"] inside a case is illegal and
+        // Mapbox drops the whole expression with nothing but a console warning.
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.7, 7, 1.2, 11, 2],
       },
     },
 
@@ -396,10 +422,13 @@ export function layerSpecs({ year, filter }) {
   ]
 }
 
-export function installLayers(map, { turbines, counties, year, filter, metar }) {
+export function installLayers(map, { turbines, counties, texas, year, filter, metar }) {
   const sources = sourceSpecs()
   sources.turbines.data = turbines
   sources.counties.data = counties
+  // Optional: the outline is context, so a failed fetch costs the border and
+  // nothing else. Left empty, the layer draws nothing and everything else works.
+  if (texas) sources.texas.data = texas
   // Re-seed with whatever the last poll returned, so a basemap switch does not
   // blank the wind for the five minutes until the next one.
   if (metar) sources.metar.data = metar
